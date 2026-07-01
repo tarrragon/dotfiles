@@ -1,0 +1,27 @@
+# Mako 通知 daemon — Catppuccin Mocha
+# stow package: mako/ → ~/.config/mako/config
+# 由 hyprland.conf 的 exec-once 啟動。改完設定用 `makoctl reload` 熱載，不必重開。
+#
+# 格式：全域選項是 key=value，[criteria] 區塊覆寫特定通知（如 urgency）。
+# 字型用 MesloLGS Nerd Font（實際裝的字族，理由同 waybar）。
+# 配色手抄 themes/colors.conf 的 Catppuccin Mocha hex（mako 的 ini 引用不到 Hyprland 變數）。
+
+font=MesloLGS Nerd Font 11
+background-color=#1e1e2e
+text-color=#cdd6f4
+border-color=#89b4fa
+border-radius=10
+border-size=2
+padding=12
+margin=10
+default-timeout=5000
+max-visible=4
+anchor=top-right
+layer=overlay
+
+[urgency=low]
+border-color=#6c7086
+
+[urgency=critical]
+border-color=#f38ba8
+default-timeout=0

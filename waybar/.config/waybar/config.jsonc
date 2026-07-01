@@ -1,0 +1,80 @@
+// Waybar 狀態列 — 結構與模組
+// stow package: waybar/ → ~/.config/waybar/config.jsonc
+// 外觀在同目錄 style.css。完整模組清單: https://github.com/Alexays/Waybar/wiki
+//
+// 設計取捨（VM 實測，見 handson record 階段三第二步）：
+//   - 左：工作區 + 當前視窗標題（focus 在哪、開了什麼）
+//   - 中：時鐘（最常看的資訊放正中）
+//   - 右：系統狀態列（network / pulseaudio / cpu / memory / battery / tray）
+//   - battery 在 VM 沒有電池硬體時 Waybar 會自動隱藏該模組（不報錯、不留空位），
+//     所以同一份 config 在桌機/筆電/VM 都能用，不必為 VM 另開一份。
+{
+    "layer": "top",
+    "position": "top",
+    "height": 32,
+    "spacing": 6,
+
+    "modules-left": ["hyprland/workspaces", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right": ["network", "pulseaudio", "cpu", "memory", "battery", "tray"],
+
+    "hyprland/workspaces": {
+        "format": "{id}",
+        "on-click": "activate",
+        "sort-by-number": true
+    },
+
+    "hyprland/window": {
+        "format": "{title}",
+        "max-length": 60,
+        "separate-outputs": true
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%Y-%m-%d %a}",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>"
+    },
+
+    "network": {
+        // VM 只有有線 enp0s1，format-ethernet 是實際會中的分支；
+        // wifi / disconnected 分支留著給實體機，VM 用不到但無害。
+        "format-wifi": "  {essid} {signalStrength}%",
+        "format-ethernet": "  {ifname}",
+        "format-disconnected": "  offline",
+        "tooltip-format": "{ipaddr}/{cidr}"
+    },
+
+    "pulseaudio": {
+        // 需要 pipewire/pulse 在跑，否則模組顯示為空；VM 無音效裝置時是正常現象。
+        "format": "{icon} {volume}%",
+        "format-muted": "  muted",
+        "format-icons": ["", "", ""],
+        "on-click": "pavucontrol"
+    },
+
+    "cpu": {
+        "format": "  {usage}%",
+        "interval": 2
+    },
+
+    "memory": {
+        "format": "  {percentage}%",
+        "interval": 2
+    },
+
+    "battery": {
+        "format": "{icon} {capacity}%",
+        "format-charging": "  {capacity}%",
+        "format-icons": ["", "", "", "", ""],
+        "states": {
+            "warning": 30,
+            "critical": 15
+        }
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    }
+}

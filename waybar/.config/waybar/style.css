@@ -1,0 +1,68 @@
+/* Waybar 外觀 — Catppuccin Mocha
+ * stow package: waybar/ → ~/.config/waybar/style.css
+ *
+ * 色碼跟 themes/colors.conf 同一套 Catppuccin Mocha，但這裡得手抄 hex：
+ * Waybar 的 GTK CSS 引擎吃不到 Hyprland 的 $ 變數（見 colors.conf 註解）。
+ * 字型用 MesloLGS Nerd Font —— 這是 packages-arch.txt 的 ttf-meslo-nerd
+ * 實際裝進來的字族名，icon glyph 才有字。教材範例寫 JetBrainsMono 是另一套字，
+ * 沒裝就會 fallback 成豆腐方塊（實測，見 handson record）。
+ */
+
+* {
+    font-family: "MesloLGS Nerd Font", monospace;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: rgba(30, 30, 46, 0.92);  /* base, 微透明 */
+    color: #cdd6f4;                            /* text */
+}
+
+#workspaces button {
+    padding: 0 8px;
+    margin: 4px 2px;
+    color: #6c7086;                            /* overlay0 */
+    background: transparent;
+    border-radius: 6px;
+}
+
+#workspaces button.active {
+    color: #1e1e2e;                            /* base */
+    background: #89b4fa;                       /* blue */
+}
+
+#workspaces button:hover {
+    color: #cdd6f4;
+    background: rgba(137, 180, 250, 0.2);
+}
+
+#window {
+    color: #bac2de;                            /* subtext1 */
+    margin: 0 8px;
+}
+
+#clock {
+    color: #cdd6f4;
+    font-weight: bold;
+}
+
+#network,
+#pulseaudio,
+#cpu,
+#memory,
+#battery,
+#tray {
+    padding: 0 10px;
+    margin: 4px 0;
+    color: #cdd6f4;
+}
+
+#cpu     { color: #a6e3a1; }                   /* green */
+#memory  { color: #f9e2af; }                   /* yellow */
+#network { color: #89dceb; }                   /* sky */
+
+#battery.warning  { color: #f9e2af; }          /* yellow */
+#battery.critical { color: #f38ba8; }          /* red */
+
+#pulseaudio.muted { color: #6c7086; }          /* overlay0 */

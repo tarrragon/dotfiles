@@ -1,0 +1,48 @@
+/* Wofi 外觀 — Catppuccin Mocha
+ * stow package: wofi/ → ~/.config/wofi/style.css
+ * 色碼跟 themes/colors.conf 對齊（手抄 hex，理由同 waybar/style.css）。
+ * Wofi 用 GTK CSS，selector 名稱（#input / #entry / #text）是 Wofi 固定的，
+ * 不是自訂 class。
+ */
+
+window {
+    background-color: #1e1e2e;                 /* base */
+    border: 2px solid #89b4fa;                 /* blue */
+    border-radius: 12px;
+    font-family: "MesloLGS Nerd Font", monospace;
+    font-size: 14px;
+}
+
+#input {
+    margin: 12px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #313244;                 /* surface0 */
+    color: #cdd6f4;                            /* text */
+}
+
+#input:focus {
+    border: 1px solid #89b4fa;
+}
+
+#inner-box {
+    margin: 4px 12px 12px 12px;
+}
+
+#entry {
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+#entry:selected {
+    background-color: #89b4fa;                 /* blue */
+}
+
+#entry:selected #text {
+    color: #1e1e2e;                            /* base，選中時反白 */
+}
+
+#text {
+    color: #cdd6f4;                            /* text */
+}

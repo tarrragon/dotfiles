@@ -1,0 +1,18 @@
+# Wofi 啟動器 — 行為設定
+# stow package: wofi/ → ~/.config/wofi/config
+# 外觀在同目錄 style.css。由 hyprland.conf 的 keybind 叫起（SUPER+D）。
+#
+# mode=drun：列出 .desktop 應用程式（最常用的啟動器模式）。
+# 另有 run（PATH 上的執行檔）、dmenu（吃 stdin）；要那些模式時用
+# CLI 旗標臨時切（wofi --show run），不寫死在這。
+mode=drun
+prompt=Search
+width=600
+height=420
+lines=10
+insensitive=true          # 搜尋不分大小寫
+allow_images=true         # 顯示 .desktop 的 icon
+allow_markup=true
+hide_scroll=true
+no_actions=true           # 不展開每個 app 的子動作，清單較乾淨
+gtk_dark=true
