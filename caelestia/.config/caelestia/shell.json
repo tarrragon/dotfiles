@@ -1,0 +1,19 @@
+{
+    "bar": {
+        "persistent": true,
+        "workspaces": {
+            "shown": 9
+        },
+        "clock": {
+            "format": "%H:%M"
+        }
+    },
+    "notifs": {
+        "expiration": 8000
+    },
+    "services": {
+        "time": {
+            "format24h": true
+        }
+    }
+}

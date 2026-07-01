@@ -60,7 +60,7 @@ PACKAGES=(zsh git zellij btop broot)
 
 # Linux desktop packages (skip on macOS)
 if [[ "$OS" == "Linux" ]]; then
-    for pkg in hyprland waybar wofi mako hyprlock; do
+    for pkg in hyprland waybar wofi mako hyprlock caelestia; do
         [[ -d "$pkg" ]] && PACKAGES+=("$pkg")
     done
 fi
