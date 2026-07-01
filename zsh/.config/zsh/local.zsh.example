@@ -1,0 +1,13 @@
+# Machine-specific overrides (copy to local.zsh, not tracked by Git)
+#
+# cp local.zsh.example local.zsh
+
+# --- Project aliases (examples, replace with your own) ---
+
+# alias myapp-dev='cd ~/project/myapp && ./scripts/run.sh dev'
+# alias myapp-prod='cd ~/project/myapp && ./scripts/run.sh prod'
+# alias myapp-test='cd ~/project/myapp && ./scripts/run.sh test'
+
+# --- Machine-specific PATH ---
+
+# export PATH="/some/machine-specific/path:$PATH"

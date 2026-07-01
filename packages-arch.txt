@@ -1,0 +1,54 @@
+# Arch / Hyprland 桌面套件清單
+# install.sh 會過濾 # 註解與空行、其餘餵給 pacman -S --needed
+#
+# 前置（不在此清單、需先手動裝，因為 install.sh 用 sudo）：
+#   sudo  ── base 沒附、bootstrap 自身要靠它
+
+# --- 第一步：最小可跑（Hyprland 啟動 + 終端機）---
+hyprland          # Wayland compositor
+foot              # Wayland 原生終端機、輕量
+
+# --- 開發環境：shell rice + 工具鏈（讓 .zshrc 期望的環境真的成立）---
+# HTTPS / git clone 的信任根（oh-my-zsh / p10k / Claude Code 安裝都要）
+ca-certificates
+
+# shell rice 支援
+autojump          # 目錄跳轉（oh-my-zsh autojump plugin 會 source 它）
+ttf-meslo-nerd    # Powerlevel10k 推薦字型（MesloLGS Nerd Font）
+# 註：oh-my-zsh / powerlevel10k / zsh-autosuggestions / zsh-syntax-highlighting
+#     由 install.sh git clone 進 ~/.oh-my-zsh/custom（對齊 .zshrc 的 OMZ plugin 機制）
+
+# stowed config 但 base 沒裝的 binary
+broot
+btop
+zellij
+
+# 核心 CLI
+curl              # CC 原生 installer 與一般下載都要
+github-cli        # gh
+fzf
+
+# 常用 CLI（核心 + 常用）
+ripgrep
+fd
+bat
+lazygit
+git-delta         # delta
+yazi
+tig
+ranger
+
+# Claude Code 的 runtime（CC 由 install.sh 用原生 installer 裝進 ~/.local/bin）
+nodejs
+npm
+
+# --- Hyprland rice（驗證 Hyprland 能跑後再放開）---
+# waybar          # 狀態列
+# wofi            # 應用啟動器
+# mako            # 通知 daemon
+# hyprlock        # 鎖屏
+# hyprpaper       # 桌布
+# xdg-desktop-portal-hyprland  # 螢幕分享 / 檔案選擇 portal
+# hyprpolkitagent              # polkit 認證代理
+# wl-clipboard    # 剪貼簿
+# grim slurp      # 截圖

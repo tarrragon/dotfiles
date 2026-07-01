@@ -1,0 +1,26 @@
+# Secrets
+*.pem
+*.key
+id_*
+*.env
+.env*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Caches
+*.zwc
+.zcompdump*
+.zsh_history
+
+# Machine-specific (create locally, don't commit)
+zsh/.config/zsh/local.zsh
+
+# Homebrew lock
+Brewfile.lock.json
+
+# Editor
+*.swp
+*.swo
+*~
