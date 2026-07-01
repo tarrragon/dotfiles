@@ -15,5 +15,21 @@
         "time": {
             "format24h": true
         }
+    },
+    "general": {
+        "idle": {
+            "timeouts": [
+                {
+                    "timeout": 900,
+                    "idleAction": "dpms off",
+                    "returnAction": "dpms on"
+                },
+                {
+                    "timeout": 7200,
+                    "idleAction": "lock"
+                }
+            ],
+            "lockBeforeSleep": true
+        }
     }
 }
