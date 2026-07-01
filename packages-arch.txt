@@ -61,3 +61,11 @@ slurp             # 截圖區域框選工具
 # quickshell      # Qt6/QML shell 框架（Caelestia 的 UI 底層）
 # 註：Caelestia 的 shell 和 CLI 在 AUR、不在 pacman 官方 repo
 #   paru -S caelestia-cli  # 會拉 caelestia-shell → quickshell-git
+
+# === 圖形檔案管理員（待實機驗證）===
+# 選型與相依取捨見 blog：/dotfile/05-hyprland-config/gui-file-manager-dependencies/
+# 選 Thunar（桌面無關、相依最少），補 gvfs + 縮圖才有掛載/垃圾桶/網路/縮圖功能
+# thunar               # GTK 檔案管理員（不拖桌面環境）
+# gvfs                 # 掛載/垃圾桶/網路（側欄 Devices/Network/Trash 靠它）
+# tumbler              # 縮圖服務
+# ffmpegthumbnailer    # 影片縮圖（tumbler 的 optional dep）
