@@ -1,3 +1,38 @@
 [user]
 	email = tarragonstop@gmail.com
 	name = tarragonstop
+
+[init]
+	# 新 repo 的預設分支名（GitHub 預設已是 main）
+	defaultBranch = main
+
+[pull]
+	# pull 時用 rebase 避免產生 merge commit（保持線性歷史）
+	rebase = true
+
+[push]
+	# 第一次 push 時自動設定 upstream tracking（省 -u 旗標）
+	autoSetupRemote = true
+
+[fetch]
+	# fetch 時自動清掉 remote 已刪除的分支追蹤（避免 stale branch 堆積）
+	prune = true
+
+[diff]
+	# 用 delta 取代 less 顯示 diff（需搭配 Brewfile / packages-arch.txt 的 git-delta）
+	# delta 提供語法高亮 + 行內差異標示
+	colorMoved = default
+
+[core]
+	pager = delta
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	side-by-side = true
+	line-numbers = true
+
+[merge]
+	conflictstyle = zdiff3
