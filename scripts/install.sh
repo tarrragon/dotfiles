@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# dotfiles bootstrap — 一鍵把新機器從零帶到可用的開發環境。
+# 冪等設計：重跑不會覆蓋已有設定（--needed / --adopt / -d 檢查都在）。
+# 支援 macOS（Homebrew + Brewfile）和 Arch Linux（pacman + packages-arch.txt）。
+# 執行順序：套件 → stow 部署 → zsh 框架 → Claude Code → 預設 shell
 set -Eeuo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -31,11 +35,13 @@ if [[ "$OS" == "Darwin" ]]; then
         brew install stow
     fi
 
+    # --no-lock 不產生 Brewfile.lock.json（機器間 lock 不可攜、.gitignore 已排除）
     echo "Installing packages from Brewfile..."
     brew bundle --file="$DOTFILES_DIR/Brewfile" --no-lock
 
 elif [[ "$OS" == "Linux" ]]; then
     if command -v pacman &>/dev/null; then
+        # stow/git/zsh 是 bootstrap 自身的前提，先確保有再讀套件清單
         log "Installing base packages (Arch)..."
         sudo pacman -S --needed stow git zsh
         if [[ -f "$DOTFILES_DIR/packages-arch.txt" ]]; then
@@ -65,6 +71,8 @@ if [[ "$OS" == "Linux" ]]; then
     done
 fi
 
+# --adopt：若目標位置已有同名檔案，stow 把它「收養」進 repo（之後 git diff 可檢視差異）。
+# 比直接報錯好——新機器可能已有工具自動生成的預設 config，adopt 後由 repo 統一管理。
 for pkg in "${PACKAGES[@]}"; do
     if [[ -d "$pkg" ]]; then
         log "Stowing $pkg..."
@@ -103,7 +111,8 @@ if ! command -v claude &>/dev/null && [[ ! -x "$HOME/.local/bin/claude" ]]; then
     curl -fsSL https://claude.ai/install.sh | bash
 fi
 
-# Set zsh as default shell if not already
+# chsh 需要使用者密碼（互動式）。若在無人值守環境跑，
+# 事前用 NOPASSWD sudo + 手動改 /etc/passwd 繞過，或接受 shell 留 bash。
 if [[ "$(basename "$SHELL")" != "zsh" ]]; then
     log "Changing default shell to zsh..."
     chsh -s "$(command -v zsh)"
