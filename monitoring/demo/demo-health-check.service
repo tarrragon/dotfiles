@@ -1,0 +1,9 @@
+[Unit]
+Description=Poll demo-health /health; alert if unresponsive
+# 這條抓「進程活著但不回應」：systemd 看 demo-health 還在跑、不會告警，
+# 但這個外部探針 curl 逾時就失敗 → 觸發 OnFailure，補上 systemd 的盲點。
+OnFailure=alert@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -fsS --max-time 5 http://127.0.0.1:8899/health

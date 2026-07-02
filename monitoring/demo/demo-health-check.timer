@@ -1,0 +1,9 @@
+[Unit]
+Description=Run demo-health-check periodically
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+
+[Install]
+WantedBy=timers.target

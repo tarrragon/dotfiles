@@ -1,0 +1,14 @@
+[Unit]
+Description=Demo health canary (monitoring target)
+# 撐過重試上限才 failed 才告警（先自動重啟、放棄才吵）
+StartLimitIntervalSec=60
+StartLimitBurst=3
+OnFailure=alert@%n.service
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/lib/demo-health/health-server.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

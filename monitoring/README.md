@@ -65,3 +65,16 @@ StartLimitIntervalSec=60
 `OnFailure` 靠 systemd 觸發，機器當掉就發不出告警。那一層要體外心跳（dead-man switch）：機器定時 `curl` healthchecks.io / Uptime Kuma，訊號停由體外告警。體內方案報不了自己這台的死。
 
 完整判讀與四層框架見 blog：`/linux/debug/service-failure-monitoring/`。
+
+## demo canary（測試靶子）
+
+`demo/` 是一個可控的 HTTP 健康服務，給監控當靶子與 canary（不必拿 sshd 這種真服務去故意弄掛）。部署（需先跑過本層 deploy.sh）：
+
+```bash
+sudo ./monitoring/demo/deploy.sh
+```
+
+它示範兩種失敗、對應兩層偵測：
+
+- `curl 127.0.0.1:8899/crash` → 進程退出 → systemd 標 failed → `OnFailure` 告警。
+- `curl 127.0.0.1:8899/hang` → 進程活著但不回應 → systemd 抓不到，靠 `demo-health-check.timer` 每 2 分鐘 curl `/health` 逾時失敗才觸發告警。這條補上「進程活著 ≠ 在運作」的盲點。
