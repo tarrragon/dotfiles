@@ -26,17 +26,20 @@ echo 'your-private-topic' | sudo tee /etc/svc-alert-topic   # 填真正的 topic
 scripts/remote-sync.sh <ssh-host> 'sudo ./monitoring/deploy.sh'
 ```
 
-## 讓某個 service 被監控
+## 讓某個 service 被監控（宣告式）
 
-deploy 只裝告警基礎件，不替你決定監控誰。要監控某個 unit，加一行 `OnFailure`：
+要監控哪些 service 由 `hooks/units.txt` 宣告——一行一個 unit。deploy 為每個裝
+`<unit>.d/onfailure.conf` drop-in（附加、不動原 unit）。加一行就多監控一個、走 git 部署即生效：
 
 ```bash
-# 針對單一 unit（drop-in，不動原始 unit 檔）
-sudo systemctl edit <unit>
-# 在編輯器裡填：
-#   [Unit]
-#   OnFailure=alert@%n.service
+echo 'nginx.service   # 加註解說明為何監控它' >> monitoring/hooks/units.txt
+git add monitoring/hooks/units.txt && git commit -m "monitor nginx"
+scripts/remote-sync.sh <host> 'sudo ./monitoring/deploy.sh'
 ```
+
+驗證掛上了（不必弄掛服務）：`systemctl show <unit> -p OnFailure` 應列出 `alert@<unit>.service`。
+
+臨時、不進 repo 的掛法（ad-hoc、不建議常態用）：`sudo systemctl edit <unit>` 填 `[Unit]` + `OnFailure=alert@%n.service`。
 
 要一次套用到所有 service，用 top-level drop-in（`/etc/systemd/system/service.d/onfailure.conf`）：
 
