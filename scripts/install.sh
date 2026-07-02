@@ -42,13 +42,15 @@ if [[ "$OS" == "Darwin" ]]; then
 elif [[ "$OS" == "Linux" ]]; then
     if command -v pacman &>/dev/null; then
         # stow/git/zsh 是 bootstrap 自身的前提，先確保有再讀套件清單
+        # --noconfirm：bootstrap 常在非 TTY（SSH 指令、無人值守）跑，
+        # pacman 的 [Y/n] 互動確認沒人回答會直接 exit 1（apt 分支的 -y 同理）
         log "Installing base packages (Arch)..."
-        sudo pacman -S --needed stow git zsh
+        sudo pacman -S --needed --noconfirm stow git zsh
         if [[ -f "$DOTFILES_DIR/packages-arch.txt" ]]; then
             # 剝掉行內/整行註解（# 之後）+ trim 空白 + 濾空行，其餘當套件名
             mapfile -t arch_pkgs < <(sed -E 's/#.*//; s/^[[:space:]]+//; s/[[:space:]]+$//' "$DOTFILES_DIR/packages-arch.txt" | grep -vE '^$')
             if [[ ${#arch_pkgs[@]} -gt 0 ]]; then
-                sudo pacman -S --needed "${arch_pkgs[@]}"
+                sudo pacman -S --needed --noconfirm "${arch_pkgs[@]}"
             fi
         fi
     elif command -v apt-get &>/dev/null; then
