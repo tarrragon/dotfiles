@@ -103,7 +103,11 @@ fi
 
 if [[ "$STAGE" == "desktop" && "$OS" == "Linux" ]]; then
     # desktop（Linux）：Hyprland + rice 的 config；macOS 的 GUI 由 Brewfile cask 段涵蓋
-    stow_pkgs hyprland waybar wofi mako hyprlock themes caelestia
+    stow_pkgs hyprland waybar wofi mako hyprlock themes
+    # caelestia 不 stow：它用 atomic-write 改寫自己的 shell.json、會把 stow symlink 換成實檔，
+    # 且 stow --adopt 會把它改寫過的內容 clobber 回 repo。改 copy 部署、repo 為唯一真實來源。
+    log "Deploying caelestia config (copy, not stow)..."
+    bash "$DOTFILES_DIR/caelestia/deploy.sh"
 fi
 
 log "install.sh done (stage=$STAGE)"
