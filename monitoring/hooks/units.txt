@@ -1,0 +1,3 @@
+# 要掛失敗告警的 systemd unit（一行一個）。deploy.sh 為每個裝 <unit>.d/onfailure.conf。
+# 加一行就多監控一個服務、走 git 部署即生效。
+sshd.service          # 遠端機器命脈：sshd 掛了就失聯，最該監控的一個

@@ -5,12 +5,13 @@
 # 用法（在目標機的 dotfiles clone 裡）：
 #   sudo ./monitoring/deploy.sh
 #
-# 冪等：重跑不會壞。只安裝可複用的告警基礎件（notifier + alert@ handler + topic 佔位）。
-# 「哪些 service 要被監控」由你自己加 OnFailure（見 README），deploy 不替你決定。
+# 冪等：重跑不會壞。安裝告警基礎件（notifier + alert@ handler + topic）並依
+# hooks/units.txt 把 OnFailure 掛到指定的 service。
 set -Eeuo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
+# --- 告警基礎件 ---
 install -Dm755 "$HERE/bin/notify-failure"      /usr/local/bin/notify-failure
 install -Dm644 "$HERE/system/alert@.service"   /etc/systemd/system/alert@.service
 
@@ -20,6 +21,16 @@ if [[ ! -f /etc/svc-alert-topic ]]; then
   echo "[deploy] /etc/svc-alert-topic 建了佔位，記得填真正的 topic：echo '<topic>' | sudo tee /etc/svc-alert-topic"
 fi
 
+# --- 依 hooks/units.txt 把 OnFailure 掛到指定 service（宣告式）---
+if [[ -f "$HERE/hooks/units.txt" ]]; then
+  while IFS= read -r line; do
+    unit="${line%%#*}"                      # 剝行內註解
+    unit="$(echo "$unit" | xargs)"          # trim 空白
+    [[ -z "$unit" ]] && continue
+    install -Dm644 "$HERE/hooks/onfailure.conf" "/etc/systemd/system/${unit}.d/onfailure.conf"
+    echo "[deploy] hooked $unit → alert@"
+  done < "$HERE/hooks/units.txt"
+fi
+
 systemctl daemon-reload
-echo "[deploy] done：notify-failure + alert@.service 已就緒"
-echo "[deploy] 要監控某個 service，加一行 OnFailure=alert@%n.service（見 monitoring/README.md）"
+echo "[deploy] done：notify-failure + alert@.service + hooks 已就緒"
