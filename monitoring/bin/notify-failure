@@ -5,6 +5,15 @@
 set -uo pipefail
 
 unit="${1:?usage: notify-failure <unit>}"
+
+# 只在「真正放棄」時告警。實測：OnFailure 每次失敗都觸發，含 Restart=on-failure
+# 的每次 auto-restart 中途——不 gate 的話 flapping 服務會洗告警。中途失敗的
+# ActiveState 是 activating(auto-restart)、撞重試上限或 Restart=no 才進 failed。
+state="$(systemctl show "$unit" -p ActiveState --value 2>/dev/null)"
+if [ "$state" != "failed" ]; then
+  exit 0                                 # auto-restart 中途，先不吵、等它真的放棄
+fi
+
 host="$(uname -n)"                       # 不用 hostname：systemd service 環境下它可能回空
 ts="$(date -Is)"
 logfile="/var/log/svc-alert.log"
