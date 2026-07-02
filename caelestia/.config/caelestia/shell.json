@@ -4,5 +4,15 @@
         "workspaces": {
             "shown": 9
         }
+    },
+    "general": {
+        "idle": {
+            "timeouts": [
+                {
+                    "timeout": 7200,
+                    "idleAction": "lock"
+                }
+            ]
+        }
     }
 }
