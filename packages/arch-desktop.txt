@@ -22,9 +22,30 @@ grim              # 截圖
 slurp             # 截圖區域框選
 # 截圖 keybind 記得帶 --type image/png（無 xdg-utils 時 wl-copy 會誤標 MIME）
 
+# 音訊（pipewire 常被依賴鏈拉進來、但 session manager 不會自動跟進——
+# 沒 wireplumber 就沒有任何 sink、應用無聲且不報錯；權威判讀 wpctl status 看 Sinks）
+wireplumber       # pipewire session manager（建立 sink/source 的那個）
+pipewire-pulse    # PulseAudio 相容層（多數 GUI 應用走 pulse API）
+pipewire-alsa     # ALSA 相容層
+
+# 檔案管理（VM 實測：thunar 視窗正常、gvfs 側欄掛載正常）
+thunar            # GTK 檔案管理員（不拖桌面環境）
+thunar-volman     # 隨身碟/外接裝置自動掛載
+thunar-archive-plugin  # 右鍵解壓縮（配 file-roller）
+file-roller       # 壓縮檔前端
+gvfs              # 掛載/垃圾桶/網路（側欄 Devices/Network/Trash 靠它）
+tumbler           # 縮圖服務
+
+# 瀏覽器（ALARM aarch64 repo 都有官方建置）
+firefox
+chromium
+# Spotify 等 DRM 串流（aarch64）：官方 client 只發 x86_64 deb（spotify-launcher 會報
+# no packages for your cpu's architecture）、走 Web Player + Widevine。CDM 手動裝：
+#   git clone https://github.com/AsahiLinux/widevine-installer
+#   sudo env LIBDIR=/usr/lib CHROME_WIDEVINE_BASE=/usr/lib/chromium \
+#     MOZ_PREF_BASE=/usr/lib/firefox/defaults/pref ./widevine-installer
+# 需 squashfs-tools；裝完 chromium 要「重啟一次」CDM 才註冊（hint 檔時序）
+
 # --- backlog（待實測後放開）---
 # quickshell      # Qt6/QML shell 框架（Caelestia 底層）；Caelestia 本體在 AUR：paru -S caelestia-cli
-# thunar               # GTK 檔案管理員（不拖桌面環境）
-# gvfs                 # 掛載/垃圾桶/網路（側欄 Devices/Network/Trash 靠它）
-# tumbler              # 縮圖服務
 # ffmpegthumbnailer    # 影片縮圖（tumbler 的 optional dep）
