@@ -5,15 +5,8 @@
             "shown": 9
         }
     },
-    "general": {
-        "idle": {
-            "timeouts": [
-                {
-                    "idleAction": "lock",
-                    "timeout": 7200
-                }
-            ]
-        }
+    "sidebar": {
+        "showOnHover": true
     },
     "general": {
         "idle": {
