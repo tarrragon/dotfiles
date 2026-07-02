@@ -7,6 +7,11 @@ set -Eeuo pipefail
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 STAGE="${1:-desktop}"
 
+# 先同步 db + 全系統升級再裝：Arch 鏡像不保留舊版檔案，裝機當下的 db
+# 幾天內就會指向已被輪替掉的檔名（404 failed to retrieve）。
+# 只 -Sy 不 -u 會造成 partial upgrade（新 db 裝新套件、舊系統缺新依賴），一律 -Syu。
+sudo pacman -Syu --noconfirm
+
 install_list() {
     local f="$DOTFILES_DIR/packages/$1"
     [[ -f "$f" ]] || { echo "skip: $1 (not found)"; return 0; }
