@@ -24,3 +24,7 @@ Brewfile.lock.json
 *.swp
 *.swo
 *~
+
+# App runtime writes through folded stow symlinks (caelestia/btop write into their config dirs)
+caelestia/.config/caelestia/monitors/
+btop/.config/btop/themes/
