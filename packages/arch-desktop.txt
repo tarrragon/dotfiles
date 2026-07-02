@@ -52,6 +52,12 @@ ffmpeg            # CLI 轉檔 / 生測試素材
 #     MOZ_PREF_BASE=/usr/lib/firefox/defaults/pref ./widevine-installer
 # 需 squashfs-tools；裝完 chromium 要「重啟一次」CDM 才註冊（hint 檔時序）
 
+# 圖形檔案管理員（選 Thunar：桌面無關、輕量標準；在裸 Hyprland 只新裝 8 個相依）
+# 側欄的掛載/垃圾桶/網路、縮圖不是 Thunar 內建、各是一個額外套件，明確補上：
+thunar                # XFCE 出身、但只拖 xfce4 基礎庫、不裝 XFCE 桌面本身
+gvfs                  # 側欄 Devices/Network/Trash 的後端（掛載/垃圾桶/網芳）
+tumbler               # 縮圖服務（圖片）
+ffmpegthumbnailer     # 影片縮圖（tumbler 的 optional dep）
+
 # --- backlog（待實測後放開）---
 # quickshell      # Qt6/QML shell 框架（Caelestia 底層）；Caelestia 本體在 AUR：paru -S caelestia-cli
-# ffmpegthumbnailer    # 影片縮圖（tumbler 的 optional dep）
