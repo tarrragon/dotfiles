@@ -1,0 +1,11 @@
+[Unit]
+Description=ntfy desktop notification subscriber
+# user service：登入後常駐訂閱、把告警彈成桌面通知（需 session 內有通知 daemon 如 mako）
+
+[Service]
+ExecStart=%h/.local/bin/ntfy-desktop-sub
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,21 @@
+#!/bin/bash
+# ntfy-desktop-sub — 訂閱 ntfy topic、把每則訊息彈成桌面通知（notify-send → mako）。
+# 由 ntfy-desktop.service（user service）常駐執行；斷線交給 systemd Restart 重連。
+set -uo pipefail
+
+topic_file="${SVC_ALERT_TOPIC_FILE:-$HOME/.config/svc-alert/topic}"
+topic="$(cat "$topic_file" 2>/dev/null | tr -d '[:space:]')"
+if [ -z "$topic" ] || [ "$topic" = "CHANGE-ME" ]; then
+  echo "沒設 topic：echo '<topic>' > $topic_file" >&2
+  exit 1
+fi
+
+# /json 串流：一行一則 JSON。-N 不緩衝、連上先來一個 event:open，訊息是 event:message。
+curl -sN "https://ntfy.sh/$topic/json" | while IFS= read -r line; do
+  [ -z "$line" ] && continue
+  event="$(printf '%s' "$line" | jq -r '.event // empty' 2>/dev/null)"
+  [ "$event" = "message" ] || continue
+  title="$(printf '%s' "$line" | jq -r '.title // "ntfy"' 2>/dev/null)"
+  msg="$(printf '%s' "$line" | jq -r '.message // ""' 2>/dev/null)"
+  notify-send -u critical "$title" "$msg"
+done

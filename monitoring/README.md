@@ -83,3 +83,17 @@ sudo ./monitoring/demo/deploy.sh
 
 - `curl 127.0.0.1:8899/crash` → 進程退出 → systemd 標 failed → `OnFailure` 告警。
 - `curl 127.0.0.1:8899/hang` → 進程活著但不回應 → systemd 抓不到，靠 `demo-health-check.timer` 每 2 分鐘 curl `/health` 逾時失敗才觸發告警。這條補上「進程活著 ≠ 在運作」的盲點。
+
+## desktop：桌面通知訂閱（不用手機 app）
+
+`desktop/` 是一個 **user systemd 服務**，常駐訂閱 topic、把每則告警用 `notify-send` 彈成桌面通知（走 mako）。以你自己的帳號部署、**不要 sudo**（user service + notify-send 都在你的 session 裡）：
+
+```bash
+./monitoring/desktop/deploy.sh
+# topic 從 ~/.config/svc-alert/topic 讀；沒設就 echo '<topic>' > ~/.config/svc-alert/topic 再
+# systemctl --user restart ntfy-desktop
+```
+
+依賴 `jq` + `libnotify` + session 內有通知 daemon。斷線交給 systemd `Restart=always` 重連。
+
+**放哪台**：在 VM 自己訂閱自己的告警有點循環（VM 掛了就彈不出來）——這種桌面訂閱更適合放在**你盯著的工作機**上、訂遠端機器的 topic，人在電腦前不必掏手機就看得到。放 VM 只是示範 / 測試基礎建設。

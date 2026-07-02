@@ -4,6 +4,7 @@
 
 # shell 支援
 autojump          # 目錄跳轉（oh-my-zsh autojump plugin 會 source 它）
+jq                # JSON 處理（ntfy 桌面訂閱解析 /json 串流、通用 JSON CLI）
 
 # stowed config 對應的 binary
 broot             # 互動式目錄樹瀏覽器
