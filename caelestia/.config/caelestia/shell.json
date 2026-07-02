@@ -9,8 +9,8 @@
         "idle": {
             "timeouts": [
                 {
-                    "timeout": 7200,
-                    "idleAction": "lock"
+                    "idleAction": "lock",
+                    "timeout": 7200
                 }
             ]
         }
