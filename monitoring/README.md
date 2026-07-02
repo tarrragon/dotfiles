@@ -49,7 +49,7 @@ OnFailure=alert@%n.service
 
 ## 先自動重啟、放棄才告警
 
-暫時性失敗自己重試就好。讓 systemd 先重啟、撐過上限才 failed 才告警：
+暫時性失敗自己重試就好。讓 systemd 先重啟、撐過上限才進 failed：
 
 ```ini
 [Service]
@@ -59,6 +59,8 @@ RestartSec=5
 StartLimitBurst=3
 StartLimitIntervalSec=60
 ```
+
+實測坑：`OnFailure` **每次失敗都觸發**（含 auto-restart 中途），只靠這段 config 會被每次瞬斷洗告警（一個重試 3 次的 crash 觸發了 4 次）。`notify-failure` 已內建 gate（`ActiveState != failed` 就跳過中途），所以實際只在真正放棄那次告警——config 管「重試幾次」、handler 的 gate 管「只在終局吵」。
 
 ## 整台機器死掉的盲點
 
