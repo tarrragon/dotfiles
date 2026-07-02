@@ -39,6 +39,12 @@ tumbler           # 縮圖服務
 # 瀏覽器（ALARM aarch64 repo 都有官方建置）
 firefox
 chromium
+
+# 媒體播放（Arch 把 VLC 解碼器拆包——本體只有 UI、缺 plugin 播 h264 直接報
+# codec not supported；首跑會彈 Privacy/Network Access 同意對話框、屬預期互動）
+vlc
+vlc-plugin-ffmpeg # 解碼器（沒有它 = 只能開不能播）
+ffmpeg            # CLI 轉檔 / 生測試素材
 # Spotify 等 DRM 串流（aarch64）：官方 client 只發 x86_64 deb（spotify-launcher 會報
 # no packages for your cpu's architecture）、走 Web Player + Widevine。CDM 手動裝：
 #   git clone https://github.com/AsahiLinux/widevine-installer
