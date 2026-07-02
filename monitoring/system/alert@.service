@@ -1,0 +1,8 @@
+[Unit]
+Description=Alert on failure of %i
+# 遞迴防護：這個 handler 自己不掛 OnFailure（即使用了全域 drop-in 也不會觸發自己）
+OnFailure=
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/notify-failure %i

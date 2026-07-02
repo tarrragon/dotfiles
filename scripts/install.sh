@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
-# dotfiles bootstrap — 一鍵把新機器從零帶到可用的開發環境。
+# dotfiles bootstrap 入口 — 一鍵把新機器帶到可用的工作環境。
+#
+# 分層：base（工具最小集）→ terminal（CLI 工具鏈 + shell 框架 + Claude Code）
+#       → desktop（圖形桌面，平台分歧最大）。後層自動涵蓋前層。
+# 用法：install.sh [base|terminal|desktop]（預設 desktop = 全裝）
+#
+# 職責切分：本檔只放跨平台同一套邏輯的「環境組裝」（stow / git clone / curl installer）；
+# 「套件怎麼裝」按平台委派給 install-<platform>.sh，各自獨立維護、分歧不寫進共通層。
 # 冪等設計：重跑不會覆蓋已有設定（--needed / --adopt / -d 檢查都在）。
-# 支援 macOS（Homebrew + Brewfile）和 Arch Linux（pacman + packages-arch.txt）。
-# 執行順序：套件 → stow 部署 → zsh 框架 → Claude Code → 預設 shell
 set -Eeuo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 OS="$(uname -s)"
+STAGE="${1:-desktop}"
+
+case "$STAGE" in base|terminal|desktop) ;; *) echo "usage: install.sh [base|terminal|desktop]"; exit 2 ;; esac
 
 # --- Logging：全輸出 tee 到帶時間戳的 log 檔，失敗時記行號+指令 ---
 # 設計理由：bootstrap 失敗是常態，沒有 log 就只能瞎找。tee 留完整紀錄、
@@ -19,74 +27,51 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
 trap 'log "ERROR line $LINENO: [$BASH_COMMAND] exit=$?"' ERR
 
-log "install.sh start | OS=$OS | DOTFILES_DIR=$DOTFILES_DIR"
+log "install.sh start | OS=$OS | STAGE=$STAGE | DOTFILES_DIR=$DOTFILES_DIR"
 log "log file: $LOG_FILE"
 
-# --- Package manager & packages ---
+# --- 套件安裝：按平台委派（分歧層，各自維護）---
 
 if [[ "$OS" == "Darwin" ]]; then
-    if ! command -v brew &>/dev/null; then
-        echo "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-
-    if ! command -v stow &>/dev/null; then
-        echo "Installing stow..."
-        brew install stow
-    fi
-
-    # --no-lock 不產生 Brewfile.lock.json（機器間 lock 不可攜、.gitignore 已排除）
-    echo "Installing packages from Brewfile..."
-    brew bundle --file="$DOTFILES_DIR/Brewfile" --no-lock
-
+    "$DOTFILES_DIR/scripts/install-macos.sh" "$STAGE"
 elif [[ "$OS" == "Linux" ]]; then
     if command -v pacman &>/dev/null; then
-        # stow/git/zsh 是 bootstrap 自身的前提，先確保有再讀套件清單
-        log "Installing base packages (Arch)..."
-        sudo pacman -S --needed stow git zsh
-        if [[ -f "$DOTFILES_DIR/packages-arch.txt" ]]; then
-            # 剝掉行內/整行註解（# 之後）+ trim 空白 + 濾空行，其餘當套件名
-            mapfile -t arch_pkgs < <(sed -E 's/#.*//; s/^[[:space:]]+//; s/[[:space:]]+$//' "$DOTFILES_DIR/packages-arch.txt" | grep -vE '^$')
-            if [[ ${#arch_pkgs[@]} -gt 0 ]]; then
-                sudo pacman -S --needed "${arch_pkgs[@]}"
-            fi
-        fi
+        "$DOTFILES_DIR/scripts/install-arch.sh" "$STAGE"
     elif command -v apt-get &>/dev/null; then
-        echo "Installing base packages (Debian/Ubuntu)..."
-        sudo apt-get update && sudo apt-get install -y stow git zsh
+        # Debian/Ubuntu 目前沒有實測機器、只維護 bootstrap 最小集；
+        # 真有機器要 bootstrap 時建 install-debian.sh + packages/debian-*.txt 獨立維護
+        log "Installing minimal base (Debian/Ubuntu — 無分層清單)..."
+        sudo apt-get update && sudo apt-get install -y stow git zsh curl ca-certificates
     fi
 fi
 
-# --- Deploy configs via stow ---
+# --- 共通層：環境組裝（跨平台同一套邏輯）---
 
 cd "$DOTFILES_DIR"
 
-# Shared packages (both macOS and Linux)
-PACKAGES=(zsh git zellij btop broot)
-
-# Linux desktop packages (skip on macOS)
-if [[ "$OS" == "Linux" ]]; then
-    for pkg in hyprland waybar wofi mako hyprlock caelestia; do
-        [[ -d "$pkg" ]] && PACKAGES+=("$pkg")
-    done
-fi
-
-# --adopt：若目標位置已有同名檔案，stow 把它「收養」進 repo（之後 git diff 可檢視差異）。
+# --adopt：目標位置已有同名檔案時把它「收養」進 repo（之後 git diff 可檢視差異），
 # 比直接報錯好——新機器可能已有工具自動生成的預設 config，adopt 後由 repo 統一管理。
-for pkg in "${PACKAGES[@]}"; do
-    if [[ -d "$pkg" ]]; then
-        log "Stowing $pkg..."
-        stow --adopt "$pkg" 2>/dev/null || stow "$pkg"
-    fi
-done
+stow_pkgs() {
+    local pkg
+    for pkg in "$@"; do
+        if [[ -d "$pkg" ]]; then
+            log "Stowing $pkg..."
+            stow --adopt "$pkg" 2>/dev/null || stow "$pkg"
+        fi
+    done
+}
 
-# --- Post-install ---
+# base：只部署不依賴任何框架的 config（zsh config 依賴 OMZ、歸 terminal 層一起交付）
+stow_pkgs git
 
-# oh-my-zsh + powerlevel10k + 外掛（git clone 進 OMZ custom，對齊 .zshrc 的 plugin 機制）
-# .zshrc 期望這些存在；只靠 pacman 裝不出 OMZ 的 custom theme/plugin 佈局，要 clone。
-setup_zsh_framework() {
-    local ZSH_DIR="$HOME/.oh-my-zsh"
-    local ZSH_CUSTOM="$ZSH_DIR/custom"
+if [[ "$STAGE" != "base" ]]; then
+    # terminal：config 跟它依賴的框架同層交付（.zshrc 期望 OMZ/p10k 存在、缺了 shell 會壞）
+    stow_pkgs zsh zellij btop broot
+
+    # oh-my-zsh + powerlevel10k + 外掛（git clone 進 OMZ custom，對齊 .zshrc 的 plugin 機制）
+    # 只靠套件管理器裝不出 OMZ 的 custom theme/plugin 佈局，要 clone。
+    ZSH_DIR="$HOME/.oh-my-zsh"
+    ZSH_CUSTOM="$ZSH_DIR/custom"
     if [[ ! -d "$ZSH_DIR" ]]; then
         log "Installing oh-my-zsh..."
         git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$ZSH_DIR"
@@ -95,35 +80,37 @@ setup_zsh_framework() {
         log "Installing powerlevel10k..."
         git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
     fi
-    local plugin
     for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
         if [[ ! -d "$ZSH_CUSTOM/plugins/$plugin" ]]; then
             log "Installing zsh plugin: $plugin..."
             git clone --depth=1 "https://github.com/zsh-users/$plugin.git" "$ZSH_CUSTOM/plugins/$plugin"
         fi
     done
-}
-setup_zsh_framework
 
-# Claude Code（原生 installer 裝進 ~/.local/bin、免 sudo、自動更新；認證另外做）
-if ! command -v claude &>/dev/null && [[ ! -x "$HOME/.local/bin/claude" ]]; then
-    log "Installing Claude Code..."
-    curl -fsSL https://claude.ai/install.sh | bash
+    # Claude Code（原生 installer 裝進 ~/.local/bin、免 sudo、自動更新；認證另外做）
+    if ! command -v claude &>/dev/null && [[ ! -x "$HOME/.local/bin/claude" ]]; then
+        log "Installing Claude Code..."
+        curl -fsSL https://claude.ai/install.sh | bash
+    fi
+
+    # chsh 需要使用者密碼（互動式）。無人值守環境會失敗、不擋後續步驟——
+    # 用 || 記 log 而不是讓 set -e 中斷，shell 留原樣是可接受的退化。
+    if [[ "$(basename "$SHELL")" != "zsh" ]]; then
+        log "Changing default shell to zsh..."
+        chsh -s "$(command -v zsh)" || log "chsh failed (non-TTY?) — 手動跑: chsh -s \$(command -v zsh)"
+    fi
 fi
 
-# chsh 需要使用者密碼（互動式）。若在無人值守環境跑，
-# 事前用 NOPASSWD sudo + 手動改 /etc/passwd 繞過，或接受 shell 留 bash。
-if [[ "$(basename "$SHELL")" != "zsh" ]]; then
-    log "Changing default shell to zsh..."
-    chsh -s "$(command -v zsh)"
+if [[ "$STAGE" == "desktop" && "$OS" == "Linux" ]]; then
+    # desktop（Linux）：Hyprland + rice 的 config；macOS 的 GUI 由 Brewfile cask 段涵蓋
+    stow_pkgs hyprland waybar wofi mako hyprlock themes caelestia
 fi
 
-log "install.sh done"
+log "install.sh done (stage=$STAGE)"
 echo ""
 echo "Done. Notes:"
 echo "  - Full log: $LOG_FILE"
 echo "  - Review any adopted files: git diff"
-echo "  - Machine-specific overrides: ~/.config/zsh/local.zsh"
-echo "  - Project aliases: add to ~/.config/zsh/local.zsh (see local.zsh.example)"
+echo "  - Machine-specific overrides: ~/.config/zsh/local.zsh (see local.zsh.example)"
 echo "  - Secrets (SSH keys, API tokens) are NOT managed by this repo"
 echo "  - Claude Code auth: 在有瀏覽器的機器跑 'claude setup-token'，再於本機 export CLAUDE_CODE_OAUTH_TOKEN=<token>"

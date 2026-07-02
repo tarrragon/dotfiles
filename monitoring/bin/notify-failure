@@ -1,0 +1,29 @@
+#!/bin/bash
+# notify-failure — systemd OnFailure 處理器實際送出告警的腳本。
+# 由 alert@.service 以 `notify-failure %i` 呼叫，%i 是進入 failed 的 unit 名。
+# 部署位置：/usr/local/bin/notify-failure（見 monitoring/deploy.sh）。
+set -uo pipefail
+
+unit="${1:?usage: notify-failure <unit>}"
+host="$(uname -n)"                       # 不用 hostname：systemd service 環境下它可能回空
+ts="$(date -Is)"
+logfile="/var/log/svc-alert.log"
+topic_file="/etc/svc-alert-topic"
+
+# 1) 本機留底（不依賴外部網路，是「處理器有被觸發」的第一手證據）
+{
+  echo "[$ts] FAILURE: $unit on $host"
+  systemctl status "$unit" --no-pager -n 8 2>&1 | sed 's/^/    /'
+} >>"$logfile" 2>/dev/null
+
+# 2) 推到機器外（topic 存在才推；topic 是私密值、不進 git，見 svc-alert-topic.example）
+if [ -r "$topic_file" ]; then
+  topic="$(cat "$topic_file")"
+  if [ -n "$topic" ]; then
+    code=$(curl -fsS -o /dev/null -w '%{http_code}' \
+      -H "Title: $host: $unit failed" \
+      -d "$unit entered failed state at $ts" \
+      "https://ntfy.sh/$topic" 2>>"$logfile") || code="curl-fail"
+    echo "[$ts] ntfy http=$code" >>"$logfile" 2>/dev/null
+  fi
+fi

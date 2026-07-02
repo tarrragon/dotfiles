@@ -13,11 +13,18 @@ dotfiles/
 ├── zellij/           # .config/zellij/config.kdl (clear-defaults keybinds)
 ├── btop/             # .config/btop/btop.conf
 ├── broot/            # .config/broot/conf.hjson, verbs.hjson
-├── hyprland/         # .config/hypr/hyprland.conf (VM minimal config)
+├── hyprland/         # .config/hypr/hyprland.conf
+├── waybar|wofi|mako|hyprlock|themes/  # Linux rice (one stow package per tool)
 ├── caelestia/        # .config/caelestia/ (user overlay: shell.json + hypr-user.lua)
-├── scripts/          # install.sh (not a stow package)
-├── Brewfile          # macOS package list
-└── packages-arch.txt # Arch Linux package list
+├── scripts/
+│   ├── install.sh        # entry + cross-platform assembly (stow / zsh framework / Claude Code)
+│   ├── install-arch.sh   # Arch package layer (pacman + packages/arch-*.txt)
+│   └── install-macos.sh  # macOS package layer (brew + Brewfile)
+├── packages/
+│   ├── arch-base.txt     # minimal toolset (stow/git/zsh/curl/ca-certificates)
+│   ├── arch-terminal.txt # CLI toolchain + Claude Code runtime
+│   └── arch-desktop.txt  # Hyprland + rice + fonts
+└── Brewfile          # macOS package list (not staged; installed all at once)
 ```
 
 ## Quick start
@@ -25,10 +32,13 @@ dotfiles/
 ```bash
 git clone https://github.com/tarrragon/dotfiles ~/dotfiles
 cd ~/dotfiles
-./scripts/install.sh
+./scripts/install.sh            # everything (default)
+./scripts/install.sh base       # minimal tools only
+./scripts/install.sh terminal   # + CLI toolchain, oh-my-zsh/p10k, Claude Code
+./scripts/install.sh desktop    # + Hyprland desktop (Linux) — same as default
 ```
 
-`install.sh` handles: package installation (Brewfile on macOS, packages-arch.txt on Arch), stow deployment, oh-my-zsh + powerlevel10k + plugins, Claude Code.
+Stages are cumulative and idempotent. `install.sh` owns the cross-platform assembly (stow, oh-my-zsh + powerlevel10k + plugins, Claude Code); per-platform package installation is delegated to `install-<platform>.sh`, each maintained independently. Precondition on Arch: `sudo` must be installed by root first (base image does not include it).
 
 ## Manual stow
 

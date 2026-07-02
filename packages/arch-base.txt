@@ -1,0 +1,11 @@
+# Arch base 層 — bootstrap 自身與任何後續層都依賴的最小集
+# install-arch.sh 會過濾 # 註解與空行、其餘餵給 pacman -S --needed --noconfirm
+#
+# 前置（不在此清單、需先以 root 手動裝）：
+#   sudo ── base 沒附、而本清單就是靠 sudo 裝的（chicken-and-egg，見 record）
+
+stow              # symlink farm manager，config 部署的核心
+git               # clone dotfiles / oh-my-zsh / plugins 都靠它
+zsh               # 預設 shell
+ca-certificates   # HTTPS 信任根（git clone / curl 下載都要）
+curl              # Claude Code installer 與一般下載

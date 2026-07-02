@@ -1,0 +1,8 @@
+# 這是範例檔。真正的 ntfy topic 是私密值、不進 git。
+# 部署時 deploy.sh 只在 /etc/svc-alert-topic 不存在時、用這個範例建一份佔位，
+# 再由你手動填入真正的 topic：
+#
+#   echo 'your-private-topic-xxxxx' | sudo tee /etc/svc-alert-topic
+#
+# topic 就是 https://ntfy.sh/<topic> 的 <topic>；在手機 ntfy app 訂閱同一個 topic 就收得到。
+CHANGE-ME-to-a-private-topic
