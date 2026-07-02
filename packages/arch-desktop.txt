@@ -1,0 +1,30 @@
+# Arch desktop 層 — 圖形桌面（Hyprland + rice + 字型），只在有畫面的機器裝
+# 這層是平台分歧最大的一層：Hyprland 生態只存在於 Linux（且以 Arch 打包最全）
+
+# compositor + 終端機
+hyprland          # Wayland compositor（Aquamarine 渲染後端、v0.55+）
+foot              # Wayland 原生終端機、輕量
+
+# 字型（字型的可用集合在 process 啟動時決定、開機早期就要裝好）
+ttf-meslo-nerd    # Powerlevel10k 推薦字型，字族名 "MesloLGS Nerd Font"
+noto-fonts-cjk    # CJK fallback（Nerd Font 不含中日韓、缺這支通知/標題會豆腐）
+
+# rice（step 2 已實測、全在 VM 正常 render）
+waybar            # 狀態列（模組對缺硬體自動退化）
+wofi              # 應用啟動器
+mako              # 通知 daemon（只負責顯示）
+libnotify         # notify-send + 應用程式的通知發送端
+hyprlock          # 鎖屏（ext-session-lock 協議、殺 process 不等於解鎖）
+hyprpaper         # 靜態桌布
+xdg-desktop-portal-hyprland  # 螢幕分享 / 檔案選擇 portal
+wl-clipboard      # 剪貼簿（wl-copy / wl-paste）
+grim              # 截圖
+slurp             # 截圖區域框選
+# 截圖 keybind 記得帶 --type image/png（無 xdg-utils 時 wl-copy 會誤標 MIME）
+
+# --- backlog（待實測後放開）---
+# quickshell      # Qt6/QML shell 框架（Caelestia 底層）；Caelestia 本體在 AUR：paru -S caelestia-cli
+# thunar               # GTK 檔案管理員（不拖桌面環境）
+# gvfs                 # 掛載/垃圾桶/網路（側欄 Devices/Network/Trash 靠它）
+# tumbler              # 縮圖服務
+# ffmpegthumbnailer    # 影片縮圖（tumbler 的 optional dep）
