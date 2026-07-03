@@ -15,11 +15,13 @@ dotfiles/
 ├── broot/            # .config/broot/conf.hjson, verbs.hjson
 ├── hyprland/         # .config/hypr/hyprland.conf
 ├── waybar|wofi|mako|hyprlock|themes/  # Linux rice (one stow package per tool)
-├── caelestia/        # .config/caelestia/ (user overlay: shell.json + hypr-user.lua)
+├── caelestia/        # .config/caelestia/ (user overlay) — copy-deployed via deploy.sh, NOT stowed
+├── monitoring/       # systemd service failure alerts (ntfy) — deployed to /etc via deploy.sh
 ├── scripts/
 │   ├── install.sh        # entry + cross-platform assembly (stow / zsh framework / Claude Code)
 │   ├── install-arch.sh   # Arch package layer (pacman + packages/arch-*.txt)
-│   └── install-macos.sh  # macOS package layer (brew + Brewfile)
+│   ├── install-macos.sh  # macOS package layer (brew + Brewfile)
+│   └── remote-sync.sh    # sync-and-deploy to a remote machine (local push → remote pull + deploy)
 ├── packages/
 │   ├── arch-base.txt     # minimal toolset (stow/git/zsh/curl/ca-certificates)
 │   ├── arch-terminal.txt # CLI toolchain + Claude Code runtime
@@ -44,12 +46,25 @@ Stages are cumulative and idempotent. `install.sh` owns the cross-platform assem
 
 ```bash
 cd ~/dotfiles
-stow zsh git zellij btop broot          # shared (macOS + Linux)
-stow hyprland waybar wofi mako hyprlock  # Linux desktop
-stow caelestia                           # after caelestia install
+stow zsh git zellij btop broot                  # shared (macOS + Linux)
+stow hyprland waybar wofi mako hyprlock themes  # Linux desktop
 ```
 
 To remove symlinks: `stow -D <package>`
+
+Two packages are **not** stowed:
+
+- `caelestia/` — the app atomically rewrites its own `shell.json`, which would replace stow symlinks with real files (and `stow --adopt` would clobber those rewrites back into the repo). Deploy by copy instead: `./caelestia/deploy.sh` (run automatically by the desktop stage).
+- `monitoring/` — installs to `/etc` and `/usr/local/bin`, outside stow's `$HOME` scope: `sudo ./monitoring/deploy.sh` (see `monitoring/README.md`).
+
+## Remote machines
+
+`scripts/remote-sync.sh` is the standard way to manage a remote machine — no ad-hoc SSH file drops. It commits/pushes locally, then has the remote `git pull` and run an idempotent deploy, so remote state is always reproducible from the repo:
+
+```bash
+scripts/remote-sync.sh <ssh-host>                              # default: ./scripts/install.sh
+scripts/remote-sync.sh <ssh-host> 'sudo ./monitoring/deploy.sh'  # deploy monitoring only
+```
 
 ## Machine-specific config
 
