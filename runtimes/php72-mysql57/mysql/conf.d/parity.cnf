@@ -1,0 +1,8 @@
+[mysqld]
+# 抄 prod 的 `SELECT @@sql_mode;` 進來。MySQL 5.7 預設含 ONLY_FULL_GROUP_BY，
+# 舊 app 的非嚴格 GROUP BY 查詢常在這裡炸；prod 是什麼就填什麼，不吃 image 預設。
+sql_mode = "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+default-time-zone = "+08:00"

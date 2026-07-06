@@ -1,0 +1,34 @@
+# 升級版：PHP 8.2 + MySQL 8.0 + nginx。跟 php72-mysql57 逐項對照的差異：
+# - db 沒有 platform: linux/amd64——mysql:8.0 有 arm64 原生 image，不必走模擬（5.7 沒有、才要）。
+# - port 用 8081，方便跟舊版（8080）並跑對照。
+# - collation 用 utf8mb4_0900_ai_ci（8.0 的新預設；5.7 是 utf8mb4_unicode_ci）。
+services:
+  php:
+    build: ./php
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - db
+
+  web:
+    image: nginx:1.24
+    ports:
+      - "8081:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: app
+      TZ: Asia/Taipei
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+
+volumes:
+  db-data:

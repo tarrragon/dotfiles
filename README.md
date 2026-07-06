@@ -21,13 +21,35 @@ dotfiles/
 │   ├── install.sh        # entry + cross-platform assembly (stow / zsh framework / Claude Code)
 │   ├── install-arch.sh   # Arch package layer (pacman + packages/arch-*.txt)
 │   ├── install-macos.sh  # macOS package layer (brew + Brewfile)
+│   ├── install-debian.sh # Debian/Ubuntu package layer (apt + packages/debian-*.txt)
 │   └── remote-sync.sh    # sync-and-deploy to a remote machine (local push → remote pull + deploy)
 ├── packages/
-│   ├── arch-base.txt     # minimal toolset (stow/git/zsh/curl/ca-certificates)
-│   ├── arch-terminal.txt # CLI toolchain + Claude Code runtime
-│   └── arch-desktop.txt  # Hyprland + rice + fonts
+│   ├── arch-{base,terminal,desktop}.txt    # Arch package lists per stage
+│   └── debian-{base,terminal}.txt          # Debian/Ubuntu package lists per stage
+├── runtimes/         # versioned app-runtime stacks (Dockerfile + compose) — NOT workstation config; see runtimes/README.md
 └── Brewfile          # macOS package list (not staged; installed all at once)
 ```
+
+## Where each setting lives
+
+Most of this repo is **workstation dotfiles** — config for the machine *you* work on. `runtimes/` is the one exception (explained at the bottom).
+
+| Concern | Location | What it holds |
+| --- | --- | --- |
+| Shell (zsh) | `zsh/` | `.zshrc`, `.zshenv`, modular `.config/zsh/` |
+| Git | `git/` | `.gitconfig` (delta pager), `.config/git/ignore` |
+| Terminal multiplexer | `zellij/` | `.config/zellij/config.kdl` |
+| System monitors (TUI) | `btop/`, `broot/` | their `.config/` files |
+| Linux desktop (rice) | `hyprland/` `waybar/` `wofi/` `mako/` `hyprlock/` `themes/` `caelestia/` | Wayland WM, bar, launcher, notifications, lock screen, colors, shell overlay |
+| What to install | `packages/` (Arch/Debian) + `Brewfile` (macOS) | package lists, split by distro and stage |
+| Install / bootstrap | `scripts/` | `install.sh` (cross-platform assembly) → `install-<platform>.sh` (packages) + `remote-sync.sh` |
+| Service failure alerts | `monitoring/` | systemd `OnFailure` → ntfy; deployed to `/etc` via `deploy.sh` |
+| Machine-specific overrides | `~/.config/zsh/local.zsh` | per-machine, **not** tracked by Git (see `local.zsh.example`) |
+| Reference app-runtime stacks | `runtimes/` | versioned Dockerfile + compose stacks (see `runtimes/README.md`) |
+
+### Why `runtimes/` is here (and when it isn't)
+
+Workstation dotfiles configure *your* environment and travel with *you*. A Dockerfile configures an *app's* runtime and travels with *that app* — so a real project's runtime belongs in that project's repo, not here. The `runtimes/` stacks are the narrow exception: **cross-project reference stacks you maintain for yourself** (prod-parity templates, upgrade experiments) that follow you rather than any single app's deploy. If a stack becomes tied to one app's deployment, move it into that app's repo.
 
 ## Quick start
 

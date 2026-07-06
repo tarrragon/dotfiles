@@ -1,0 +1,38 @@
+# Debian/Ubuntu terminal：CLI 工具鏈。對齊 arch-terminal.txt 職責。
+# 所有套件名都在 Debian bookworm 實測 apt 可裝過（2026-07）。
+# oh-my-zsh / powerlevel10k / zsh plugins 由 install.sh 共通層 git clone，不在這裡。
+
+# shell 支援
+autojump          # 目錄跳轉（oh-my-zsh autojump plugin 會 source 它；缺了 .zshrc 會警告）
+jq                # JSON 處理
+
+# stowed config 對應的 binary（broot/zellij 不在 bookworm、見下方手動區）
+btop              # 系統資源監控 TUI
+
+# 核心 CLI（注意 Debian 套件名與 binary 名跟 Arch 分歧）
+ripgrep           # rg
+fd-find           # Arch 叫 fd；Debian 套件 fd-find、binary 是 fdfind
+bat               # Arch/Debian 同名套件，但 Debian binary 是 batcat（非 bat）
+fzf               # 模糊搜尋
+gh                # GitHub CLI；Arch 叫 github-cli、Debian 叫 gh（且在預設 repo，免加官方源）
+tig               # Git 歷史 TUI
+ranger            # 終端機檔案管理器
+unzip
+tree
+vim
+
+# node 執行環境刻意不放這裡：apt install nodejs npm 在 Debian 會連帶 300+ 個 node-*
+# 系統套件（實測 bookworm 一次 402 個新套件、336 個是 node-*），且版本被凍在 distro 舊版。
+# 語言執行環境走 version manager（fnm / nvm）在家目錄管：可切版本、不污染系統。
+# Claude Code 本體由 install.sh 共通層的原生 installer 裝、自帶 runtime，不依賴系統 node。
+
+# 以下 Arch 有、Debian bookworm 預設 repo 沒打包，需手動裝或換等價工具（實測 apt 解不開）：
+#   broot      → 有 stowed config；從 GitHub releases 裝 binary，或 cargo install
+#   zellij     → 有 stowed config；從 GitHub releases 裝 binary，或 cargo install
+#   git-delta  → .gitconfig 的 core.pager 指向它；Debian 要從 GitHub releases 裝 .deb，
+#                否則 git 分頁會退回預設 pager。注意 apt 的 `delta` 是另一個工具、不是這個。
+#   lazygit    → 從 GitHub releases 裝 binary
+#   yazi       → 從 GitHub releases 裝，或 cargo install
+#
+# 批次安裝的注意：install-debian.sh 一次 apt-get install 整份清單，只要一個名字解不開
+# 整批就中止（其餘也不裝）。清單必須逐項對齊該 distro 實際有的套件，不能從 Arch 直接抄。

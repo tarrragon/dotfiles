@@ -1,0 +1,9 @@
+[mysqld]
+# MySQL 8.0 版。跟 5.7 的差異：
+# - 8.0 預設 sql_mode 拿掉了 NO_AUTO_CREATE_USER（5.7 有、8.0 移除該模式）。
+# - 8.0 預設認證外掛是 caching_sha2_password（5.7 是 mysql_native_password）。
+sql_mode = "ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+
+character-set-server = utf8mb4
+collation-server = utf8mb4_0900_ai_ci
+default-time-zone = "+08:00"

@@ -1,0 +1,7 @@
+# Debian/Ubuntu base：工具最小集，對齊 arch-base.txt 的職責（stow/git/zsh/curl/憑證）。
+# apt 套件名跟 Arch 有分歧的用這份清單吸收，共通層不寫死任何 distro 名。
+stow
+git
+zsh
+curl
+ca-certificates

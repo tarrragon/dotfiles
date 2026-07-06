@@ -38,10 +38,7 @@ elif [[ "$OS" == "Linux" ]]; then
     if command -v pacman &>/dev/null; then
         "$DOTFILES_DIR/scripts/install-arch.sh" "$STAGE"
     elif command -v apt-get &>/dev/null; then
-        # Debian/Ubuntu 目前沒有實測機器、只維護 bootstrap 最小集；
-        # 真有機器要 bootstrap 時建 install-debian.sh + packages/debian-*.txt 獨立維護
-        log "Installing minimal base (Debian/Ubuntu — 無分層清單)..."
-        sudo apt-get update && sudo apt-get install -y stow git zsh curl ca-certificates
+        "$DOTFILES_DIR/scripts/install-debian.sh" "$STAGE"
     fi
 fi
 
