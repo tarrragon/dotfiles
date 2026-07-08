@@ -1,0 +1,4 @@
+# 真實 token（repo 根 .gitignore 已含 .env*，此處明列作為就地提醒）
+.env
+# 掛載工作目錄的內容不進 git
+work/
