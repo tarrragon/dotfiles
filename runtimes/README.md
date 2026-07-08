@@ -8,12 +8,12 @@
 runtimes/
 ├── php72-mysql57/      對齊接案 client 的凍結舊環境（PHP 7.2 / MySQL 5.7）
 ├── php82-mysql8/       同一個 app 的升級版（PHP 8.2 / MySQL 8.0）
-└── agent-workstation/  遠端 coding agent 工作機（Claude Code in container、token 注入）
+└── agent-workstation/  遠端 coding agent 工作機（Claude Code in container、機密注入）
 ```
 
 php 兩個目錄是**兩個獨立、都留著**的 stack，不是「新的取代舊的」。這是刻意的——見下面的管理紀律。
 
-多數 stack 是 compose 多服務（`docker compose up`）；`agent-workstation/` 是單 container、用 `docker run` + helper 驅動、認證走 runtime 注入的 token（不進 image 也不進 git）——它自己的 README 有完整說明。
+多數 stack 是 compose 多服務（`docker compose up`）；`agent-workstation/` 是單 container、用 `docker run` + helper 驅動。它的機密全走 runtime 注入的同一套模式（`--env-file` 帶 gitignored `.env`、不進 image 也不進 git）：Claude Code 的 OAuth token、GitHub 操作的 `GH_TOKEN`（PAT）、ntfy 推播的 `NTFY_TOPIC` 三顆正交機密都在此注入——它自己的 README 有完整說明。
 
 ## 管理紀律：image 不可變，升級是建新的
 
