@@ -8,7 +8,7 @@
 
 ```text
 agent-workstation/
-├── Dockerfile        node:22-slim + Claude Code + git/curl/ripgrep、非 root node(UID 1000)
+├── Dockerfile        node:22-slim + Claude Code + gh + git/curl/ripgrep、非 root node(UID 1000)
 ├── deploy.sh         冪等：build image + scaffold .env 佔位 + 建 work/
 ├── run-agent.sh      fire-and-forget：注入 token、跑一次性任務（-p）
 ├── claude-shell.sh   互動對話：注入 token、起 -it 的 Claude Code
@@ -62,6 +62,23 @@ AGENT_WORK=~/proj ./claude-shell.sh   # 掛別的工作目錄
 - 在 `--rm` 臨時 container 裡走一次互動登入多半白做：憑證寫進容器、容器一結束就蒸發。可靠做法是注入 token、不靠登入態。
 - image rebuild 幾次都不影響認證：token 跟 image 生命週期完全解耦。
 
+## GitHub 認證（clone/push 私有 repo、開 PR）
+
+agent 要動私有 repo 時、GitHub 認證是**跟 Claude Code 正交的第二顆機密**——`CLAUDE_CODE_OAUTH_TOKEN` 認證 agent → Anthropic（能不能思考）、GitHub token 認證 git 操作 → GitHub（能不能 clone/push）。兩者無關、但走**同一個注入模式**：gitignored `.env` 存機密、`--env-file` 在 runtime 注入、不進 image 也不進 repo。沒有這顆 token 時只能匿名讀 public repo；私有 repo 的 clone/push 會卡在 `could not read Username for 'https://github.com'`。
+
+作法是產一顆 fine-grained PAT 填進 `.env` 的 `GH_TOKEN`：
+
+```bash
+# GitHub Settings → Developer settings → Personal access tokens → Fine-grained
+# 只授需要的 repo + 最小權限（Contents 讀寫；要開 PR 再加 Pull requests）
+# 填進 .env（跟 CLAUDE_CODE_OAUTH_TOKEN 同一個檔）
+printf 'GH_TOKEN=%s\n' "$PAT" >> .env
+```
+
+image 內 git 已設好 credential helper（`git config --global credential."https://github.com".helper '!gh auth git-credential'`）：git 走 HTTPS 時把 `GH_TOKEN` 當密碼、`x-access-token` 當使用者名。token 從不寫進 `.gitconfig` 或 `~/.config/gh`、每次現讀環境變數——跟 Claude Code 的 env-var 模型一致。`gh` CLI 也原生讀同一顆 `GH_TOKEN`、所以 `gh pr create` 這類指令不需另外 `gh auth login`。
+
+安全紀律跟 OAuth token 同一套：PAT 一樣躺在 container 的環境變數裡（`/proc/self/environ` 讀得到），在「`--dangerously-skip-permissions` + 開放 egress」下可被外洩。所以用 fine-grained + 最小 repo 範圍 + 短輪替、把 blast radius 壓到最小。
+
 ## 資安：token 為什麼不進 image、也不進 repo
 
 - **image layer 不是機密**：`ENV TOKEN=...` 或 `COPY` token 進 Dockerfile 會烤進某一層、`docker history` 就讀得到、隨 image push/cache 到處跑。
@@ -78,7 +95,7 @@ AGENT_WORK=~/proj ./claude-shell.sh   # 掛別的工作目錄
 
 ## ntfy 通知 hook（選用）
 
-要「跑完主動推播到手機」時，在掛進 `claude-home` volume 的 `settings.json` 設一個 `Stop` hook 對 ntfy topic 發訊。topic 是機密（猜到就能發/收你的通知）、**不寫進本 repo**——真值走你自己的私密管道（環境變數或另一個 gitignored 檔）。設定形態：
+要「跑完主動推播到手機」時，在掛進 `claude-home` volume 的 `settings.json` 設一個 `Stop` hook 對 ntfy topic 發訊。topic 是機密（猜到就能發/收你的通知），走跟兩顆 token 同一套注入模式——填進 `.env` 的 `NTFY_TOPIC`、hook 用 `$NTFY_TOPIC` 引用它，設定檔本身不含機密：
 
 ```json
 {
@@ -86,14 +103,16 @@ AGENT_WORK=~/proj ./claude-shell.sh   # 掛別的工作目錄
     "Stop": [
       { "hooks": [
         { "type": "command",
-          "command": "curl -s -H 'Title: 任務完成' -d 'agent 跑完了' https://ntfy.sh/<你的-topic>" }
+          "command": "curl -s -H 'Title: 任務完成' -d 'agent 跑完了' \"https://ntfy.sh/$NTFY_TOPIC\"" }
       ] }
     ]
   }
 }
 ```
 
-hook 依賴 container 內有 `curl`（Dockerfile 已裝）。
+hook 命令是 claude 程序 spawn 的子程序、繼承 container 的環境變數，所以 `$NTFY_TOPIC` 在執行時被展開。`settings.json` 躺在 `claude-home` volume、可以進版控（放結構、不放機密）；topic 只在 runtime 由 `--env-file` 補齊。
+
+`Title:` header（`任務完成`）**不是機密、不注入**：它是會被公共 `ntfy.sh` server 看到的顯示字，直接寫在 settings.json 即可——反而要確保裡面不含敏感內容。hook 也依賴 container 內有 `curl`（Dockerfile 已裝）。
 
 ## 升級紀律（同 runtimes 慣例）
 

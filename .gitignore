@@ -4,6 +4,8 @@
 id_*
 *.env
 .env*
+# 但 .env.example 是佔位模板（無真值）、必須進 repo：deploy.sh 依賴它 scaffold .env
+!.env.example
 
 # OS
 .DS_Store
