@@ -2,6 +2,8 @@
 
 Personal development environment, managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
+> **Design** — this repo is the concrete instance of a personal-scale *paved road* (the idea Spotify/Netflix apply at org scale, scaled down): a repo as single source of truth, an idempotent installer (`scripts/install.sh`), and an ordered path through the docs. It stays operational here; the concept and a task-ordered on-ramp (bringing up a remote agent workstation) are written up on the blog — [paved road, the concept](https://tarrragon.github.io/blog/linux/dotfile/knowledge-cards/paved-road-golden-path/) and [the remote-agent on-ramp](https://tarrragon.github.io/blog/linux/tools/remote/remote-agent-paved-road/).
+
 ## Structure
 
 Each top-level directory is a stow "package" — its contents mirror the target location relative to `$HOME`.
