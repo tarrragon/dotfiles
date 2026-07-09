@@ -25,7 +25,8 @@ dotfiles/
 │   ├── install-macos.sh  # macOS package layer (brew + Brewfile)
 │   ├── install-debian.sh # Debian/Ubuntu package layer (apt + packages/debian-*.txt)
 │   ├── remote-sync.sh    # sync-and-deploy to a remote machine (local push → remote pull + deploy)
-│   └── verify.sh         # read-only post-install check (stow symlinks, zsh, omz/p10k, Claude Code)
+│   ├── verify.sh         # read-only post-install check (stow symlinks, zsh, omz/p10k, Claude Code)
+│   └── scratch.sh        # spin up a disposable clean container (bare, or --provision with this repo)
 ├── packages/
 │   ├── arch-{base,terminal,desktop}.txt    # Arch package lists per stage
 │   └── debian-{base,terminal}.txt          # Debian/Ubuntu package lists per stage
@@ -138,6 +139,18 @@ scripts/remote-sync.sh <ssh-host> 'sudo ./monitoring/deploy.sh'  # deploy monito
 ## Machine-specific config
 
 Create `~/.config/zsh/local.zsh` for machine-specific overrides (not tracked by Git). See `local.zsh.example` for format.
+
+## Disposable scratch environment
+
+`scripts/scratch.sh` spins up a throwaway clean container — for cold-read testing this repo's own setup, or just for a quick disposable shell.
+
+```bash
+./scripts/scratch.sh debian                  # bare debian:bookworm, drop into a shell, removed on exit
+./scripts/scratch.sh arch --provision        # native Arch (arm64 host → real Arch Linux ARM), install.sh terminal, verify
+./scripts/scratch.sh arch --provision --keep # same, but keep the container to re-enter
+```
+
+`arch` on an arm64 host uses a native Arch Linux ARM image (not the amd64 `archlinux` under qemu, which gives false results), and `--provision` handles pacman 7's in-container Landlock sandbox (`DisableSandbox`) and `-Syu`. `bare` is what you want for validating the setup guide from a stranger's clean slate; `--provision` is a ready-to-use scratch box with the toolchain installed.
 
 ## Dependencies
 
