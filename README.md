@@ -60,7 +60,7 @@ The complete path from a fresh machine to a verified environment. Everything bel
 
 1. **Preconditions.** You need `git` to clone this repo (the install scripts install it too, but not before you can clone). Install it — and on Arch, sync the package DB in the same step:
 
-   - **Arch**, as root: `pacman -Sy git` (a fresh base image ships an empty package DB — without `-Sy` you get `target not found`).
+   - **Arch**, as root: `pacman -Syu git` (a fresh base image ships an empty package DB; use `-Syu`, not a bare `-Sy` — a partial refresh hits file conflicts on the next upgrade, e.g. `libstdc++ … exists in filesystem`). In an Arch **container**, pacman 7's sandbox may fail with a Landlock error (`switching to sandbox user 'alpm' failed`) — add `DisableSandbox` to `/etc/pacman.conf`; a real Arch host is unaffected.
    - **Debian/Ubuntu**: `apt update && apt install -y git` (prefix `sudo` if you are not root).
    - **macOS**: git comes with the Command Line Tools (`xcode-select --install`).
 
