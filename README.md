@@ -26,7 +26,8 @@ dotfiles/
 │   ├── install-debian.sh # Debian/Ubuntu package layer (apt + packages/debian-*.txt)
 │   ├── remote-sync.sh    # sync-and-deploy to a remote machine (local push → remote pull + deploy)
 │   ├── verify.sh         # read-only post-install check (stow symlinks, zsh, omz/p10k, Claude Code)
-│   └── scratch.sh        # spin up a disposable clean container (bare, or --provision with this repo)
+│   ├── scratch.sh        # spin up a disposable clean container (bare, or --provision with this repo)
+│   └── validate.sh       # self-test: run the whole setup from a clean container per target, assert green
 ├── packages/
 │   ├── arch-{base,terminal,desktop}.txt    # Arch package lists per stage
 │   └── debian-{base,terminal}.txt          # Debian/Ubuntu package lists per stage
@@ -151,6 +152,20 @@ Create `~/.config/zsh/local.zsh` for machine-specific overrides (not tracked by 
 ```
 
 `arch` on an arm64 host uses a native Arch Linux ARM image (not the amd64 `archlinux` under qemu, which gives false results), and `--provision` handles pacman 7's in-container Landlock sandbox (`DisableSandbox`) and `-Syu`. `bare` is what you want for validating the setup guide from a stranger's clean slate; `--provision` is a ready-to-use scratch box with the toolchain installed.
+
+## Validating the golden path (self-test)
+
+`scripts/validate.sh` runs this repo's own setup from a stranger's clean slate and asserts it goes green — the regression gate for "can someone still bring this up on a fresh machine".
+
+```bash
+./scripts/validate.sh              # all targets (debian + native arch), terminal stage
+./scripts/validate.sh debian       # one target
+./scripts/validate.sh arch base    # target + stage
+```
+
+For each target it spins a bare clean container, drops in this repo's committed HEAD (`git archive` — tracked files only, so no `.git` and no gitignored secrets), runs the runbook's execution (preconditions → `install.sh` → `verify.sh`), and asserts both are green. `arch` uses a native image on arm64 hosts, not amd64 under qemu. Exits non-zero if any target fails, so it drops into CI or a pre-push check.
+
+This is the executable core of the `golden-path-validation` method applied to this repo — this repo is that method's reference implementation. `validate.sh` proves the setup *runs* green from clean; whether a stranger can *understand* the guide is the complementary cold-read pass, done by LLM agents (not a script). The pieces map to the method: this README's runbook is the guide under test, `verify.sh` is the automated check, `scratch.sh` provisions the disposable environment, and `validate.sh` orchestrates the executable validation.
 
 ## Dependencies
 
