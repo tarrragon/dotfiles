@@ -19,8 +19,12 @@ ok()  { printf '  [ ok ] %s\n' "$1"; pass=$((pass+1)); }
 bad() { printf '  [FAIL] %s\n' "$1"; fail=$((fail+1)); }
 info() { printf '  [info] %s\n' "$1"; }
 have() { command -v "$1" >/dev/null 2>&1; }
-# stowed <live-path> <repo-relative-path>: true if live path resolves to the repo file
-stowed() { [[ -L "$1" && "$1" -ef "$DOTFILES_DIR/$2" ]]; }
+# stowed <live-path> <repo-relative-path>: true if the live path resolves to the repo file.
+# Uses -ef (same inode, follows symlinks) rather than requiring the leaf to be a symlink —
+# stow folds directories (e.g. ~/.config/zellij itself becomes the symlink), so the leaf
+# file is a real file reached *through* a folded parent. -ef still resolves to the repo file;
+# a plain copy has a different inode and correctly fails.
+stowed() { [[ "$1" -ef "$DOTFILES_DIR/$2" ]]; }
 
 echo "verify.sh | OS=$OS | STAGE=$STAGE | repo=$DOTFILES_DIR"
 
@@ -63,6 +67,7 @@ if [[ $fail -eq 0 ]]; then
   echo "OK — $pass checks passed for stage '$STAGE'."
   exit 0
 else
-  echo "FAILED — $fail failed, $pass passed for stage '$STAGE'. See the notes above."
+  echo "FAILED — $fail failed, $pass passed for stage '$STAGE'."
+  echo "Most gaps are fixed by re-running: ./scripts/install.sh $STAGE"
   exit 1
 fi

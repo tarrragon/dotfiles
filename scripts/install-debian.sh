@@ -11,8 +11,12 @@ set -Eeuo pipefail
 DOTFILES_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 STAGE="${1:-desktop}"
 
+# root 時不需要（也可能沒有）sudo——裸容器 / 剛裝好的機器常以 root 起手、且不含 sudo。
+# 非 root 才走 sudo。這讓「以 root 直接跑」真的成立，不會卡在 sudo: command not found。
+SUDO=sudo; [ "$(id -u)" -eq 0 ] && SUDO=""
+
 # apt 的 index 跟 Arch 不同、不會因為沒 -u 就 partial upgrade，單純 update 即可。
-sudo apt-get update
+$SUDO apt-get update
 
 install_list() {
     local f="$DOTFILES_DIR/packages/$1"
@@ -22,7 +26,7 @@ install_list() {
     mapfile -t pkgs < <(sed -E 's/#.*//; s/^[[:space:]]+//; s/[[:space:]]+$//' "$f" | grep -vE '^$')
     if [[ ${#pkgs[@]} -gt 0 ]]; then
         # --no-install-recommends：對齊「裝什麼就等於什麼」，不讓 apt 自動拉一堆推薦套件
-        sudo apt-get install -y --no-install-recommends "${pkgs[@]}"
+        $SUDO apt-get install -y --no-install-recommends "${pkgs[@]}"
     fi
 }
 
