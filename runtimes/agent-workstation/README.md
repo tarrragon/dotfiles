@@ -66,14 +66,34 @@ AGENT_WORK=~/proj ./claude-shell.sh   # 掛別的工作目錄
 
 agent 要動私有 repo 時、GitHub 認證是**跟 Claude Code 正交的第二顆機密**——`CLAUDE_CODE_OAUTH_TOKEN` 認證 agent → Anthropic（能不能思考）、GitHub token 認證 git 操作 → GitHub（能不能 clone/push）。兩者無關、但走**同一個注入模式**：gitignored `.env` 存機密、`--env-file` 在 runtime 注入、不進 image 也不進 repo。沒有這顆 token 時只能匿名讀 public repo；私有 repo 的 clone/push 會卡在 `could not read Username for 'https://github.com'`。
 
-作法是產一顆 fine-grained PAT 填進 `.env` 的 `GH_TOKEN`：
+作法分兩步：產一顆 fine-grained PAT、把它填進 `.env` 的 `GH_TOKEN`。
+
+**第一步：產 token**。到 <https://github.com/settings/personal-access-tokens/new>（或右上頭像 → Settings → 左側最底 Developer settings → Personal access tokens → Fine-grained tokens → Generate new token）：
+
+- **Token name**：可辨識來源，例如 `agent-workstation-vm`（之後方便單獨 revoke）。
+- **Expiration**：給短（30-90 天），到期或裝置遺失回同一頁 revoke / 重發。
+- **Repository access → Only select repositories**：勾要讓 agent 動的 repo。**範圍外的 repo 會回 404 / 403**——事後要加新 repo，編輯同一顆 token 的 Repository access 即可，token 值不變、`.env` 不用重填。
+- **Repository permissions → Contents: Read and write**（clone / push 的核心）；要用 `gh pr create` 再加 **Pull requests: Read and write**；Metadata 會自動變 Read-only（必帶）。
+
+按 Generate 後，`github_pat_` 開頭的值只顯示一次、直接複製進下一步。
+
+**第二步：填進 `.env`**。用 `read -rs` 讓 token 不顯示、不進 shell history、也不落在指令參數裡（整段照貼、看到提示再貼 token 按 Enter）：
 
 ```bash
-# GitHub Settings → Developer settings → Personal access tokens → Fine-grained
-# 只授需要的 repo + 最小權限（Contents 讀寫；要開 PR 再加 Pull requests）
-# 填進 .env（跟 CLAUDE_CODE_OAUTH_TOKEN 同一個檔）
-printf 'GH_TOKEN=%s\n' "$PAT" >> .env
+cd <本目錄>   # runtimes/agent-workstation/
+bash -c 'read -rsp "fine-grained PAT: " T && sed -i "s|^GH_TOKEN=.*|GH_TOKEN=$T|" .env && unset T && echo " 已寫入"'
 ```
+
+**驗證**（token 有效 + git 真的帶得進去）：
+
+```bash
+docker run --rm --env-file .env agent-workstation:v1 gh auth status        # 應印：✓ Logged in to github.com account <你> (GH_TOKEN)
+docker run --rm --env-file .env agent-workstation:v1 gh api user --jq .login
+docker run --rm --env-file .env agent-workstation:v1 \
+  bash -lc 'git ls-remote https://github.com/<owner>/<repo>.git HEAD'      # 授權內的 repo 應列出 HEAD；範圍外回 403 Write access not granted
+```
+
+`git ls-remote` 對授權外的 repo 回 `403 Write access to repository not granted` 其實是好訊號：代表 token 被 git 帶到 GitHub、且被驗過，只是 scope 不含該 repo——認證管線通、差授權。
 
 image 內 git 已設好 credential helper（`git config --global credential."https://github.com".helper '!gh auth git-credential'`）：git 走 HTTPS 時把 `GH_TOKEN` 當密碼、`x-access-token` 當使用者名。token 從不寫進 `.gitconfig` 或 `~/.config/gh`、每次現讀環境變數——跟 Claude Code 的 env-var 模型一致。`gh` CLI 也原生讀同一顆 `GH_TOKEN`、所以 `gh pr create` 這類指令不需另外 `gh auth login`。
 
