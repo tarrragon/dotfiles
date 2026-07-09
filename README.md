@@ -58,17 +58,23 @@ Workstation dotfiles configure *your* environment and travel with *you*. A Docke
 
 The complete path from a fresh machine to a verified environment. Everything below assumes **you already have a shell on the machine and network access**; each step is idempotent, so re-running any of them is safe.
 
-1. **Preconditions.** You need `git` to clone this repo — the repo installs git later, but not before you can clone it, so install it by hand first: Arch `sudo pacman -S git`, Debian/Ubuntu `sudo apt install git`, macOS gets it with the Command Line Tools. On a fresh **Arch** base image there is no `sudo` either — as root, `pacman -S sudo` and add your user to the `wheel` group first. In a **root shell** (e.g. a bare container) there is no `sudo` and none is needed; if the package scripts call `sudo` and it is absent, either install `sudo` or run them as root without it.
+1. **Preconditions.** You need `git` to clone this repo (the install scripts install it too, but not before you can clone). Install it — and on Arch, sync the package DB in the same step:
+
+   - **Arch**, as root: `pacman -Sy git` (a fresh base image ships an empty package DB — without `-Sy` you get `target not found`).
+   - **Debian/Ubuntu**: `apt update && apt install -y git` (prefix `sudo` if you are not root).
+   - **macOS**: git comes with the Command Line Tools (`xcode-select --install`).
+
+   About `sudo`: the install scripts detect when they run as **root** and skip `sudo` entirely, so a bare root container works with no `sudo` installed. If instead you run as a **non-root user**, install and configure `sudo` first (creating that user and its privileges is machine setup, outside this repo's scope).
 
 2. **Clone and install.**
 
    ```bash
    git clone https://github.com/tarrragon/dotfiles ~/dotfiles
    cd ~/dotfiles
-   ./scripts/install.sh            # everything (default); or a stage — see Quick start below
+   ./scripts/install.sh            # default = everything (desktop); headless/server → ./scripts/install.sh terminal
    ```
 
-   This runs the per-platform package layer, stows the dotfiles, sets up oh-my-zsh + powerlevel10k, installs Claude Code, and (desktop stage) copy-deploys caelestia. A full timestamped log lands in `~/.local/state/dotfiles/`.
+   Stages: `base` (minimal), `terminal` (+ CLI toolchain, oh-my-zsh/p10k, Claude Code), `desktop` (+ Hyprland rice, Arch only). This runs the per-platform package layer, stows the dotfiles, sets up oh-my-zsh + powerlevel10k, installs Claude Code, **changes your default shell to zsh** (`chsh`), and (desktop stage) copy-deploys caelestia. A full timestamped log lands in `~/.local/state/dotfiles/`. If a target file already exists as a real file (not a symlink), stow adopts it into the repo (review with `git diff`) — back up any dotfiles you want to keep before running.
 
 3. **System layer — optional (service-failure alerts).** Not run by `install.sh` because it writes to `/etc` and needs root:
 
@@ -79,8 +85,8 @@ The complete path from a fresh machine to a verified environment. Everything bel
 
 4. **Secrets and per-machine config** (never tracked by Git):
 
-   - **Claude Code auth** — run `claude setup-token` on a machine with a browser, then make `CLAUDE_CODE_OAUTH_TOKEN=<token>` available on this machine (the container agent stack reads it from `runtimes/agent-workstation/.env` instead — see that README).
-   - **Per-machine overrides** — create `~/.config/zsh/local.zsh` (see `local.zsh.example`).
+   - **Claude Code auth** — run `claude setup-token` on a machine with a browser, then add `export CLAUDE_CODE_OAUTH_TOKEN=<token>` to `~/.config/zsh/local.zsh` (per-machine, not tracked). The container agent stack reads it from `runtimes/agent-workstation/.env` instead — see that README.
+   - **Per-machine overrides** — that same `~/.config/zsh/local.zsh` holds any machine-specific config (see `local.zsh.example`).
 
 5. **Verify.** Confirm the environment actually came up — pass the same stage you installed:
 
@@ -100,7 +106,7 @@ cd ~/dotfiles
 ./scripts/install.sh            # everything (default)
 ./scripts/install.sh base       # minimal tools only
 ./scripts/install.sh terminal   # + CLI toolchain, oh-my-zsh/p10k, Claude Code
-./scripts/install.sh desktop    # + Hyprland desktop (Linux) — same as default
+./scripts/install.sh desktop    # + Hyprland rice (Arch only) — same as default; headless/server: use terminal, not this
 ```
 
 Stages are cumulative and idempotent. `install.sh` owns the cross-platform assembly (stow, oh-my-zsh + powerlevel10k + plugins, Claude Code); per-platform package installation is delegated to `install-<platform>.sh`, each maintained independently. Precondition on Arch: `sudo` must be installed by root first (base image does not include it).
