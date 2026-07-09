@@ -11,11 +11,11 @@ plugins=(
   git
   zsh-autosuggestions
   zsh-syntax-highlighting
-  autojump
   history
   sudo
   web-search
 )
+# zoxide（autojump 的替代）init 在 .config/zsh/tools.zsh，不走 oh-my-zsh plugin
 
 source $ZSH/oh-my-zsh.sh
 

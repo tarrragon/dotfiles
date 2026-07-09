@@ -3,7 +3,7 @@
 # oh-my-zsh / powerlevel10k / zsh plugins 由 install.sh 共通層 git clone，不在這裡。
 
 # shell 支援
-autojump          # 目錄跳轉（oh-my-zsh autojump plugin 會 source 它；缺了 .zshrc 會警告）
+zoxide            # 目錄跳轉（z / zi；init 在 zsh/tools.zsh；autojump 的維護版替代）
 jq                # JSON 處理
 
 # stowed config 對應的 binary（broot/zellij 不在 bookworm、見下方手動區）
