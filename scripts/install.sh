@@ -42,6 +42,14 @@ elif [[ "$OS" == "Linux" ]]; then
     fi
 fi
 
+# macOS：把 brew 加進「這個父行程」的 PATH，讓共通層的 stow 等 brew 工具可用。
+# install-macos.sh 裡的 eval 只改它自己的子行程、不會傳回這裡（子行程 PATH 不上傳父行程）。
+if [[ "$OS" == "Darwin" ]]; then
+    for brewbin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        [[ -x "$brewbin" ]] && eval "$("$brewbin" shellenv)" && break
+    done
+fi
+
 # --- 共通層：環境組裝（跨平台同一套邏輯）---
 
 cd "$DOTFILES_DIR"
