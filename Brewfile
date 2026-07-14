@@ -199,3 +199,11 @@ npm "markdownlint-cli"
 npm "typescript"
 npm "vscode-langservers-extracted"
 npm "yaml-language-server"
+
+# 刻意不納管的實驗性套件（intentionally unmanaged）
+# 以下為本機實驗 / 一次性用途安裝、決定不進 dotfile。
+# 跑 `brew bundle cleanup` 或現況比對時會出現在「未記錄」清單、屬預期、不用回頭查。
+# 若哪天要正式納管、把對應行從這裡搬進上方 formula / cask 區塊即可。
+#   gifsicle  (formula) — GIF 編輯、一次性用途
+#   ollama    (formula) — 本地 LLM 實驗
+#   utm       (cask)    — VM 實驗環境
