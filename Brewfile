@@ -1,209 +1,56 @@
+# 核心 Brewfile — 每台機器都要的最小集。
+#
+# 選配工具（db / lsp / containers / editor / ai-agent / 其他 role-specific）不在這裡：
+#   見 packages/optional.txt + scripts/install-optional.sh（picker 多選按需安裝）。
+# 判準：stow config 綁定的 binary、bootstrap 依賴、通用 shell/git 日常 → core；
+#       「某台有做那件事才要」→ optional。
+#
+# 語言 runtime（node/go/uv+Python/flutter）不由 brew 管：見 scripts/install-runtimes.sh，
+# 它在 brew bundle「之前」跑，好讓下方 go/uv/npm 條目有 go/node/uv 可用。
+
+# taps 保留原樣（onevcat/tap 供 optional 的 prowl；prowl 安裝時 brew 也會自動 tap，
+# 待確認 omnisharp / onevcat 是否可精簡）
 tap "omnisharp/omnisharp-roslyn"
 tap "onevcat/tap"
 tap "xo/xo", trusted: { formulae: ["usql"] }
+
+# === 核心 CLI（每台機器）===
+
 # Shell extension to jump to frequently used directories
 brew "autojump"
-# New way to see and navigate directory trees
+# New way to see and navigate directory trees（stow config）
 brew "broot"
-# Resource monitor. C++ version and continuation of bashtop and bpytop
+# Resource monitor（stow config）
 brew "btop"
-# Dependency manager for Cocoa projects
-brew "cocoapods"
-# Top-like interface for container metrics
-brew "ctop"
-# Database client every command-line junkie deserves
-brew "dblab"
-# Utility to configure multi-display resolutions and arrangements
-brew "displayplacer"
-# Tool for exploring each layer in a docker image
-brew "dive"
+# Fuzzy finder — 通用 + scripts/install-optional.sh 的 picker
+brew "fzf"
 # Disk usage analyzer with console interface written in Go
 brew "gdu"
 # GitHub command-line tool
 brew "gh"
-# Syntax-highlighting pager for git and diff output
+# Syntax-highlighting pager for git and diff output（綁 git config）
 brew "git-delta"
-# Command-line tool to show clear git graphs arranged for your branching model
-brew "git-graph"
-# Blazing fast terminal-ui for git written in rust
-brew "gitui"
-# Render markdown on the CLI
-brew "glow"
-# Command-driven, interactive function plotting
-brew "gnuplot"
-# Log analyzer and interactive viewer for the Apache Webserver
-brew "goaccess"
-# Easy, fast, and beautiful database client for the terminal
-brew "harlequin"
 # Improved top (interactive process viewer)
 brew "htop"
-# Configurable static site generator
-brew "hugo"
-# Java language specific implementation of the Language Server Protocol
-brew "jdtls"
-# Kubernetes CLI To Manage Your Clusters In Style!
-brew "k9s"
-# Intelligent Kotlin support for any editor/IDE using the Language Server Protocol
-brew "kotlin-language-server"
-# Kafka TUI client
-brew "ktea"
-# Simple terminal UI for git commands
+# Simple terminal UI for git commands（主力 git TUI）
 brew "lazygit"
-# Cross-platform TUI database management tool
-brew "lazysql"
-# CLI for SQLite Databases with auto-completion and syntax highlighting
-brew "litecli"
-# Language Server Protocol for Markdown
-brew "marksman"
-# NCurses Disk Usage
-brew "ncdu"
-# Interactive GPU process monitor
-brew "nvtop"
-# Development kit for the Java programming language
-brew "openjdk@17"
-# CLI for Postgres with auto-completion and syntax highlighting
-brew "pgcli"
-# Execute binaries from Python packages in isolated environments
-brew "pipx"
-# QR Code generation
-brew "qrencode"
-# Database management TUI for PostgreSQL/MySQL/SQLite
-brew "rainfrog"
-# File browser
+# File browser（stow config）
 brew "ranger"
-# Experimental Rust compiler front-end for IDEs
-brew "rust-analyzer"
-# Sparklines for the shell
-brew "spark"
-# Organize software neatly under a single directory tree (e.g. /usr/local)
+# Organize software neatly under a single directory tree（bootstrap 依賴）
 brew "stow"
-# Text interface for Git repositories
-brew "tig"
-# Terminal multiplexer
-brew "tmux"
-# Command-line tool for sharing terminal over the web
-brew "ttyd"
-# Blazing fast terminal file manager written in Rust, based on async I/O
-brew "yazi"
-# Command-line tool that draw plots on the terminal
-brew "youplot"
-# TUI for exploring data in a Kafka cluster
-brew "yozefu"
-# Pluggable terminal workspace, with terminal multiplexer as the base feature
+# Pluggable terminal workspace（stow config、主力多工器）
 brew "zellij"
 # Fish shell like syntax highlighting for zsh
 brew "zsh-syntax-highlighting"
-# Android SDK component
-cask "android-platform-tools"
-# OpenAI's coding agent that runs in your terminal
-cask "codex"
-# Window peeking utility app
-cask "dockdoor"
-cask "font-meslo-lg-nerd-font"
-# Intercept, modify, replay, save HTTP/S traffic
-cask "mitmproxy"
-# Replacement for Docker Desktop
-cask "orbstack"
-# Coding agent orchestrator
-cask "onevcat/tap/prowl"
-# Open-source code editor
-cask "visual-studio-code"
-vscode "aaron-bond.better-comments"
-vscode "ahinkle.laravel-model-snippets"
-vscode "alefragnani.bookmarks"
-vscode "alexisvt.flutter-snippets"
-vscode "amiralizadeh9480.laravel-extra-intellisense"
-vscode "anthropic.claude-code"
-vscode "batisteo.vscode-django"
-vscode "bierner.markdown-mermaid"
-vscode "bmewburn.vscode-intelephense-client"
-vscode "christian-kohler.path-intellisense"
-vscode "codingyu.laravel-goto-view"
-vscode "dadroit.dadroit-json-generator"
-vscode "dart-code.dart-code"
-vscode "dart-code.flutter"
-vscode "davidanson.vscode-markdownlint"
-vscode "devsense.composer-php-vscode"
-vscode "devsense.intelli-php-vscode"
-vscode "devsense.phptools-vscode"
-vscode "devsense.profiler-php-vscode"
-vscode "dinhani.copy-on-select"
-vscode "donjayamanne.python-environment-manager"
-vscode "donjayamanne.python-extension-pack"
-vscode "eamodio.gitlens"
-vscode "ecmel.vscode-html-css"
-vscode "esbenp.prettier-vscode"
-vscode "github.vscode-github-actions"
-vscode "golang.go"
-vscode "gruntfuggly.todo-tree"
-vscode "hbenl.vscode-test-explorer"
-vscode "inferrinizzard.prettier-sql-vscode"
-vscode "kevinrose.vsc-python-indent"
-vscode "lamarcke.kanagawa-black"
-vscode "maptz.regionfolder"
-vscode "mehedidracula.php-namespace-resolver"
-vscode "mhutchie.git-graph"
-vscode "monokai.theme-monokai-pro-vscode"
-vscode "ms-azuretools.vscode-containers"
-vscode "ms-ceintl.vscode-language-pack-zh-hant"
-vscode "ms-python.debugpy"
-vscode "ms-python.python"
-vscode "ms-python.vscode-pylance"
-vscode "ms-python.vscode-python-envs"
-vscode "ms-vscode-remote.remote-containers"
-vscode "ms-vscode-remote.remote-ssh"
-vscode "ms-vscode-remote.remote-ssh-edit"
-vscode "ms-vscode.cmake-tools"
-vscode "ms-vscode.cpp-devtools"
-vscode "ms-vscode.cpptools"
-vscode "ms-vscode.cpptools-extension-pack"
-vscode "ms-vscode.cpptools-themes"
-vscode "ms-vscode.powershell"
-vscode "ms-vscode.remote-explorer"
-vscode "ms-vscode.test-adapter-converter"
-vscode "njpwerner.autodocstring"
-vscode "oderwat.indent-rainbow"
-vscode "onecentlin.laravel-blade"
-vscode "onecentlin.laravel5-snippets"
-vscode "pranaygp.vscode-css-peek"
-vscode "qufiwefefwoyn.kanagawa"
-vscode "ryannaddy.laravel-artisan"
-vscode "tushortz.python-extended-snippets"
-vscode "twxs.cmake"
-vscode "usernamehw.errorlens"
-vscode "vscjava.vscode-gradle"
-vscode "vscode-icons-team.vscode-icons"
-vscode "vue.volar"
-vscode "wallabyjs.quokka-vscode"
-vscode "wholroyd.jinja"
-vscode "xdebug.php-debug"
-vscode "zhuangtongfa.material-theme"
-go "github.com/tarrragon/cc-statusline"
-go "golang.org/x/tools/gopls"
-go "honnef.co/go/tools/cmd/staticcheck"
-go "github.com/xo/usql"
-uv "-"
-uv "doc-system"
-uv "mermaid-ascii"
-uv "project-init"
-uv "skill-sync"
-uv "ticket-system"
-uv "version-release"
-uv "worktree-skill"
-npm "@colbymchenry/codegraph"
-npm "@vtsls/language-server"
-npm "corepack"
-npm "ctx7"
-npm "intelephense"
-npm "markdownlint-cli"
-npm "typescript"
-npm "vscode-langservers-extracted"
-npm "yaml-language-server"
+
+# === workflow 工具（go / uv / npm）===
+# 不放這裡：brew bundle 的 go/uv/npm 條目會去裝 Homebrew 自己的 node/go（繞過我們用
+# nvm/tarball pin 的版本、還會平行搶 node 的 lock 而失敗——乾淨機器冷測實證）。
+# 改由 scripts/install-runtimes.sh 用「我們 pin 的 runtime」裝這些工具（見該檔 *_TOOLS）。
 
 # 刻意不納管的實驗性套件（intentionally unmanaged）
-# 以下為本機實驗 / 一次性用途安裝、決定不進 dotfile。
-# 跑 `brew bundle cleanup` 或現況比對時會出現在「未記錄」清單、屬預期、不用回頭查。
-# 若哪天要正式納管、把對應行從這裡搬進上方 formula / cask 區塊即可。
+# 一次性 / 實驗用途、決定既不進 core 也不進 optional。跑 `brew bundle cleanup` 或現況
+# 比對時會出現在「未記錄」清單、屬預期、不用回頭查。
 #   gifsicle  (formula) — GIF 編輯、一次性用途
-#   ollama    (formula) — 本地 LLM 實驗
 #   utm       (cask)    — VM 實驗環境
+# 註：ollama 已從這裡移到 packages/optional.txt 的 ai-agent 群組。

@@ -1,0 +1,80 @@
+# 選配工具清單（optional）— scripts/install-optional.sh 讀取。
+#
+# 定位：這些是「某台機器有做那件事才要」的 role-specific 工具，不進核心 Brewfile。
+# 用法：跑 scripts/install-optional.sh → picker 多選 → 按 type 安裝；已裝的自動跳過、
+#       單項失敗（如 prowl macOS 版本不符）不影響其他項。
+#
+# 格式：group | type | name | description
+#   type: brew   = brew install <name>
+#         cask   = brew install --cask <name>（tap-qualified 名 brew 會自動 tap）
+#         bundle = brew bundle --file=packages/<name>（給 VS Code + 擴充這種一整包）
+#         curl   = 見 install-optional.sh 的 curl_install() 對照（非-brew 工具用）
+
+# --- containers ---
+containers | cask | orbstack | Docker Desktop 替代品
+containers | brew | dive     | 檢視 docker image 每一層
+containers | brew | ctop     | 容器 metrics 的 top 介面
+containers | brew | k9s      | Kubernetes 叢集管理 CLI
+
+# --- db ---
+db | brew | dblab     | 命令列資料庫 client
+db | brew | harlequin | 終端機資料庫 client
+db | brew | lazysql   | 跨平台資料庫 TUI
+db | brew | litecli   | SQLite CLI，自動補全
+db | brew | pgcli     | Postgres CLI，自動補全
+db | brew | rainfrog  | PostgreSQL/MySQL/SQLite 資料庫 TUI
+
+# --- lsp（語言伺服器）---
+lsp | brew | jdtls                  | Java LSP
+lsp | brew | kotlin-language-server | Kotlin LSP
+lsp | brew | marksman               | Markdown LSP
+lsp | brew | rust-analyzer          | Rust LSP
+lsp | brew | openjdk@17             | Java JDK（jdtls / kotlin-ls 依賴）
+
+# --- kafka ---
+kafka | brew | ktea   | Kafka TUI client
+kafka | brew | yozefu | Kafka 叢集資料探索 TUI
+
+# --- mobile ---
+mobile | brew | cocoapods              | Cocoa 專案依賴管理
+mobile | cask | android-platform-tools | Android SDK 工具（adb 等）
+
+# --- net-debug ---
+net-debug | cask | mitmproxy | 攔截 / 改寫 / 重放 HTTP/S 流量
+
+# --- editor ---
+editor | bundle | Brewfile.editor | VS Code + 擴充（一整包，見 packages/Brewfile.editor）
+
+# --- ai-agent ---
+ai-agent | cask | codex             | OpenAI 終端 coding agent
+ai-agent | cask | onevcat/tap/prowl | coding agent 編排器（注意：有 macOS 版本限制）
+ai-agent | brew | ollama            | 本地 LLM
+
+# --- git-extra（lazygit 之外的 git TUI）---
+git-extra | brew | gitui     | Rust git TUI
+git-extra | brew | tig       | git 文字介面
+git-extra | brew | git-graph | 依分支模型排列的 git graph
+
+# --- shell-extra（core 已有主力，這些是替代 / 補充）---
+shell-extra | brew | tmux  | 終端機多工器（zellij 之外的選擇）
+shell-extra | brew | yazi  | Rust 終端機檔案管理器
+shell-extra | brew | ncdu  | NCurses 磁碟用量（gdu 之外）
+shell-extra | brew | glow  | 命令列 markdown 渲染
+shell-extra | brew | spark | shell sparklines
+
+# --- python-extra ---
+python-extra | brew | pipx | 隔離環境跑 Python CLI（多與 uv 重疊）
+
+# --- misc ---
+misc | brew | gnuplot       | 互動式函數繪圖
+misc | brew | goaccess      | Apache log 分析
+misc | brew | youplot       | 終端機繪圖
+misc | brew | nvtop         | GPU 行程監視
+misc | brew | qrencode      | QR Code 產生
+misc | brew | displayplacer | 多螢幕解析度 / 排列設定
+misc | brew | ttyd          | 把終端機分享到 web
+misc | brew | hugo          | 靜態網站產生器（寫 blog 用）
+misc | cask | dockdoor      | 視窗預覽工具
+
+# --- desktop ---
+desktop | cask | font-meslo-lg-nerd-font | Meslo Nerd 字型（有畫面的機器；Ghostty 內建已含 glyph、非必需）
