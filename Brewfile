@@ -43,6 +43,12 @@ brew "zellij"
 # Fish shell like syntax highlighting for zsh
 brew "zsh-syntax-highlighting"
 
+# === 核心 GUI（有畫面的機器都要）===
+# 主力終端機。repo 多處註解已把 Ghostty 當成既定前提（zsh/.zshenv 的 LC_CTYPE
+# 處理、optional.txt 的字型說明），故納為核心而非選配。無畫面的機器裝 cask 亦無害
+# （brew 會裝但不影響 headless 使用）。
+cask "ghostty"
+
 # === workflow 工具（go / uv / npm）===
 # 不放這裡：brew bundle 的 go/uv/npm 條目會去裝 Homebrew 自己的 node/go（繞過我們用
 # nvm/tarball pin 的版本、還會平行搶 node 的 lock 而失敗——乾淨機器冷測實證）。
