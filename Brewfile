@@ -8,9 +8,9 @@
 # 語言 runtime（node/go/uv+Python/flutter）不由 brew 管：見 scripts/install-runtimes.sh，
 # 它在 brew bundle「之前」跑，好讓下方 go/uv/npm 條目有 go/node/uv 可用。
 
-# taps 保留原樣（onevcat/tap 供 optional 的 prowl；prowl 安裝時 brew 也會自動 tap，
-# 待確認 omnisharp / onevcat 是否可精簡）
-tap "omnisharp/omnisharp-roslyn"
+# onevcat/tap 供 optional 的 prowl（prowl 用 fully-qualified 名裝時 brew 也會自動 tap）。
+# 原 omnisharp/omnisharp-roslyn tap 已移除：repo 無任何套件依賴它，且新版 brew 對未信任
+# 的 tap 會警告並忽略，留著只是空轉。
 tap "onevcat/tap"
 tap "xo/xo", trusted: { formulae: ["usql"] }
 
