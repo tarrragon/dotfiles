@@ -10,6 +10,8 @@
 # 涵蓋範圍:Node(nvm)/ Go / uv+Python / Flutter(fvm),外加它們的 workflow 工具
 #   (go install / npm -g / uv tool，見底部 *_TOOLS)。Ruby / Java 走 Homebrew(見 Brewfile)。
 #   Python 不另裝 standalone:uv 供給 uv-managed Python、隔離使用(見 install_uv)。
+#   另收尾 cc-statusline:go install 只 build binary,補上 macOS ime-helper(swiftc)與
+#   ~/.claude/settings.json 的 statusLine 接線(見 setup_cc_statusline)。
 # 未納管(刻意):Rust(rustup)/ Bun — 需要時自行 curl 官方 installer。
 #
 # 為什麼工具在這裡而非 Brewfile:brew bundle 的 go/uv/npm 條目會去裝 Homebrew 自己的
@@ -158,6 +160,56 @@ install_go_tools() {
     done
 }
 
+# --- cc-statusline：補上 go install 補不到的兩步 ---
+# GO_TOOLS 的 `go install .../cc-statusline` 只 build 出 Go binary，但這個 statusline 還需要：
+#   (1) macOS 的 ime-helper（Swift）——`go install` 不碰 .swift，缺它 IME 顯示會被靜默略過；
+#       helper 必須跟 binary 放同一目錄（~/go/bin），statusline 才找得到。
+#   (2) ~/.claude/settings.json 的 statusLine 條目——binary 裝好也要接進 Claude Code 才會生效。
+# 兩步都依賴 binary（上一步 install_go_tools 剛裝好），且都是 darwin 專屬，故緊接於此。
+# 遵循本 repo「config 跟依賴的框架同層交付」原則：statusLine 設定寫在 binary 落地的同層。
+setup_cc_statusline() {
+    export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
+    local bin; bin="$(command -v cc-statusline || true)"; [[ -z "$bin" ]] && bin="$HOME/go/bin/cc-statusline"
+    if [[ ! -x "$bin" ]]; then
+        log "WARN: cc-statusline binary 不在（go install 失敗？），跳過 statusline 設定"
+        return
+    fi
+
+    # (1) ime-helper：從 go module cache 取跟 binary 同版本的 .swift 原始碼（go install 已解壓進 cache、
+    #     免再 clone、版本天然對齊），swiftc build 進 ~/go/bin。缺 swiftc / 缺原始碼都只 WARN 不中斷
+    #     ——IME 顯示是選配，缺 helper statusline 只是靜默略過該欄，非致命。
+    if command -v swiftc &>/dev/null; then
+        local src; src="$(ls -d "$(go env GOMODCACHE)"/github.com/tarrragon/cc-statusline@*/ 2>/dev/null | sort -V | tail -1)"
+        if [[ -n "$src" && -f "${src}helper_darwin.swift" ]]; then
+            log "building ime-helper (swiftc)"
+            swiftc -O "${src}helper_darwin.swift" -o "$HOME/go/bin/ime-helper" \
+                && log "ime-helper → ~/go/bin/ime-helper" \
+                || log "WARN: swiftc build 失敗，IME 顯示將被略過"
+        else
+            log "WARN: 找不到 helper_darwin.swift（module cache 未就緒？），跳過 ime-helper"
+        fi
+    else
+        log "WARN: 無 swiftc，跳過 ime-helper（IME 顯示將被略過）"
+    fi
+
+    # (2) 接進 Claude Code：jq 併入 statusLine（保留 theme/tui 等既有鍵），寫絕對路徑避免依賴
+    #     Claude 執行 statusline 時的 PATH。冪等：內容無變不覆寫；settings 非合法 JSON 只 WARN。
+    command -v jq &>/dev/null || { log "WARN: 無 jq，跳過 claude statusLine 設定"; return; }
+    local settings="$HOME/.claude/settings.json"
+    mkdir -p "$(dirname "$settings")"
+    [[ -f "$settings" ]] || echo '{}' > "$settings"
+    local tmp; tmp="$(mktemp)"
+    if jq --arg cmd "$bin" '.statusLine = {type:"command", command:$cmd}' "$settings" > "$tmp" 2>/dev/null; then
+        if cmp -s "$tmp" "$settings"; then
+            log "claude statusLine 已是最新，skip"; rm -f "$tmp"
+        else
+            mv "$tmp" "$settings"; log "claude statusLine → $bin"
+        fi
+    else
+        rm -f "$tmp"; log "WARN: $settings 非合法 JSON，跳過 statusLine 設定（請手動加）"
+    fi
+}
+
 install_npm_tools() {
     export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
     command -v npm &>/dev/null || { log "WARN: npm 不在,跳過 npm tools"; return; }
@@ -183,5 +235,6 @@ install_flutter
 # 工具用上面裝好的 runtime 裝（node/go/uv 必須先跑）
 install_npm_tools
 install_go_tools
+setup_cc_statusline   # ime-helper build + 接進 ~/.claude/settings.json（依賴 install_go_tools 的 binary）
 install_uv_tools
 log "runtimes done"
