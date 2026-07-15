@@ -56,12 +56,16 @@ cd "$DOTFILES_DIR"
 
 # --adopt：目標位置已有同名檔案時把它「收養」進 repo（之後 git diff 可檢視差異），
 # 比直接報錯好——新機器可能已有工具自動生成的預設 config，adopt 後由 repo 統一管理。
+#
+# --target="$HOME"：stow 預設 target 是「stow 目錄的上一層」，只有 repo 剛好放在
+# ~/dotfiles 時上一層才等於 $HOME。repo 若放深一層（如 ~/project/dotfiles），預設就會
+# 把 symlink 建到 ~/project/ 去、dotfiles 完全不生效。明確釘死 $HOME，跟 repo 放哪無關。
 stow_pkgs() {
     local pkg
     for pkg in "$@"; do
         if [[ -d "$pkg" ]]; then
             log "Stowing $pkg..."
-            stow --adopt "$pkg" 2>/dev/null || stow "$pkg"
+            stow --target="$HOME" --adopt "$pkg" 2>/dev/null || stow --target="$HOME" "$pkg"
         fi
     done
 }
